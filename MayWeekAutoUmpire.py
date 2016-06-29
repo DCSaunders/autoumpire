@@ -31,8 +31,7 @@ def initialiseGame(p, playerFile, newsFile, startID, index_attr):
             player = Player(row[Field.name],row[Field.pseud],row[Field.college], \
                             row[Field.address],row[Field.water],row[Field.notes], \
                             row[Field.email])
-            ## If you'd rather index the game by e.g. pseudonym, you can!
-            ## Just change the bit in the square brackets on the next line.
+            # Assign player dictionary, indexing by attribute defined in main
             p[getattr(player, index_attr)] = player
 
 
@@ -43,13 +42,13 @@ def initialiseGame(p, playerFile, newsFile, startID, index_attr):
 def runGame(p, index_attr):
     try:
         
-        p["Thomas Ruddle"].killed(p["Douglas Hall"], "00:00")
-        p["Curtis Reubens"].killed(p["Thomas Ruddle"], "11:00")
-        p["Curtis Reubens"].killed(p["Thomas Ruddle"], "15:20")
-        p["Curtis Reubens"].killed(p["Thomas Ruddle"], "19:25")
-        p["Curtis Reubens"].killed(p["Thomas Ruddle"], "08:20")
-        p["Douglas Hall"].bonus(17)
-        p["Curtis Reubens"].killed(p["Thomas Ruddle"], "10:00")
+        p["Player1"].killed(p["Player3"], "00:00")
+        p["Player2"].killed(p["Player1"], "11:00")
+        p["Player2"].killed(p["Player1"], "15:20")
+        p["Player2"].killed(p["Player1"], "19:25")
+        p["Player2"].killed(p["Player1"], "08:20")
+        p["Player3"].bonus(17)
+        p["Player2"].killed(p["Player1"], "10:00")
         startReporting(p) # !!PLACE THIS LINE WHERE YOU WANT NEW REPORTS TO START!!
 
     except KeyError, e:
@@ -146,14 +145,15 @@ if __name__ == '__main__':
     startID = "e16000" # Anchor for first entry in news file
     playerFile = "MWAUexampleplayers.csv"
     index_attr = 'name' # Change to e.g. 'email', 'pseudonym' or other unique attr of Player class if want
+    
     p = dict() # Player dictionary
-
     initialiseGame(p, playerFile, newsFile, startID, index_attr)
     runGame(p, index_attr)
     score(p)
+    # outputScore(p=playerdict, html=True/False, k=attribute-to-sort-by, desc=True/False)
     outputScores(p, False, 'points', True) # simple plaintext scores in point order
     outputScores(p, True, 'points', True) # html scores in point order
     outputScores(p, True, 'college', False) # html scores in college order
     outputScores(p, True, 'name', False) # html scores in name order
-    outputScores(p, True, 'kills', True) # simple plaintext scores in point order
+    outputScores(p, True, 'kills', True) # simple plaintext scores in kills order
 
