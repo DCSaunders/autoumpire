@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 class Player(object):
     # Player class for MayWeekAutoUmpire project written by Danielle Saunders (ds636)
     "Player object"    
@@ -40,8 +41,7 @@ class Player(object):
         
     # Create a template for a new report.
     def __newReport(self, otherPlayer, time):
-        news = "news.txt" # Text file the news will be written to. Change if want.
-        lines = open(news, 'r').readlines()
+        lines = open(self.news, 'r').readlines()
 
         # ID is formed of one letter, then numbers
         ID = lines[0]
@@ -112,7 +112,7 @@ class Player(object):
         otherPlayer.died(self)
 
         
-    def __init__(self, pName, pPseudonym, pCollege, pAddress, pWaterStatus, pNotes, pEmail):
+    def __init__(self, pName, pPseudonym, pCollege, pAddress, pWaterStatus, pNotes, pEmail, news):
         self.name = pName
         self.pseudonym = pPseudonym
         self.college = pCollege
@@ -120,6 +120,7 @@ class Player(object):
         self.waterStatus = pWaterStatus
         self.notes = pNotes
         self.email = pEmail
+        self.news = news
         self.kills = 0
         self.deaths = 0
         self.bonusPoints = 0

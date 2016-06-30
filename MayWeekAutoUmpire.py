@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import csv
 import operator
 import os.path
@@ -30,7 +31,7 @@ def initialiseGame(p, playerFile, newsFile, startID, index_attr):
         for row in reader:
             player = Player(row[Field.name],row[Field.pseud],row[Field.college], \
                             row[Field.address],row[Field.water],row[Field.notes], \
-                            row[Field.email])
+                            row[Field.email], newsFile)
             # Assign player dictionary, indexing by attribute defined in main
             p[getattr(player, index_attr)] = player
 
