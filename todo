@@ -1,0 +1,8 @@
+- Remove reporting appending requirement: unnecessary and complicates design.
+- Better event entry, either in-file or in text file.
+- Generalise classes so a main game AU can be developed.
+- Develop a main game AU: class design/implementation
+- Develop a main game AU: automatic emailing
+- Develop a main game AU: targetting graph
+- Allow graceful player-removal
+- Allow multi-player events
