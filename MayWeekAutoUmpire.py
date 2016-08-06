@@ -4,6 +4,8 @@ import operator
 import os.path
 from Player import Player
 
+NAME_MARKER, KILLS = '"', 'KILLS'
+
 # Enum for columns of playerlist containing relevant info
 # If changing playerlist layout, be sure to edit this enum.
 class Field(object):
@@ -35,29 +37,75 @@ def initialiseGame(p, playerFile, newsFile, startID, index_attr):
             # Assign player dictionary, indexing by attribute defined in main
             p[getattr(player, index_attr)] = player
 
-
-# Runs the game start to finish. The only function you should need to update.
-# NB Example function indexes using name
-# p: player dictionary
-# index_attr: attribute to index playerlist. Default set to be name
-def runGame(p, index_attr):
-    try:
-        
-        p["Player1"].killed(p["Player3"], "00:00")
-        p["Player2"].killed(p["Player1"], "11:00")
-        p["Player2"].killed(p["Player1"], "15:20")
-        p["Player2"].killed(p["Player1"], "19:25")
-        p["Player2"].killed(p["Player1"], "08:20")
-        p["Player3"].bonus(17)
-        p["Player2"].killed(p["Player1"], "10:00")
-        startReporting(p) # !!PLACE THIS LINE WHERE YOU WANT NEW REPORTS TO START!!
-
-    except KeyError, e:
-        print "KeyError {} - indexing by {}".format(str(e), index_attr)
-    except e:
-        print str(e)
-        raise
+class GameRunner(object):
     
+    def __init__(self, p, index_attr, gameFile):
+        self.gameFile = gameFile
+        self.players = p
+        self.index_attr = index_attr
+        self.current_char = ''
+        self.current_token = ''
+        self.text = ''
+        self.index = 0
+
+    def skipWhitespace(self):
+        while self.current_char is not None and self.current_char.isspace():
+            self.advance()
+        
+    def advance(self):
+        self.index += 1
+        if self.index > len(self.text) - 1:
+            self.current_char = None
+        else:
+            self.current_char = self.text[self.index]
+        
+    def getPlayerName(self):
+        self.advance()
+        name = ''
+        while self.current_char is not NAME_MARKER:
+            name += self.current_char
+            self.advance()
+        self.advance()
+        self.current_token = name
+
+    def getKeyword(self):
+        while self.current_char.isalpha():
+            if self.text[self.index:self.index+len(KILLS)] == KILLS:
+                self.current_token = KILLS
+                self.index += len(KILLS)
+                self.current_char = self.text[self.index]
+    
+    # Runs the game start to finish.
+    # NB Example function indexes using name
+    # p: player dictionary
+    # index_attr: attribute to index playerlist. Default set to be name
+    # gameFile: text file for running game
+    def runGame(self):
+        with open(self.gameFile, 'r') as f:
+            for line in f:
+                self.index = 0
+                self.text = line
+                self.current_char = self.text[self.index]
+                while self.current_char is not None:
+                    if self.current_char == NAME_MARKER:
+                        self.getPlayerName()
+                        print self.current_token
+                    elif self.current_char.isspace():
+                        self.skipWhitespace()
+                    elif self.current_char.isalpha():
+                        self.getKeyword()
+                        print self.current_token
+
+        
+        self.players["Player1"].killed(self.players["Player3"], "00:00")
+        self.players["Player2"].killed(self.players["Player1"], "11:00")
+        self.players["Player2"].killed(self.players["Player1"], "15:20")
+        self.players["Player2"].killed(self.players["Player1"], "19:25")
+        self.players["Player2"].killed(self.players["Player1"], "08:20")
+        self.players["Player3"].bonus(17)
+        self.players["Player2"].killed(self.players["Player1"], "10:00")
+        startReporting(p) 
+
 
 # Score the playerlist
 # p: player dictionary
@@ -88,7 +136,6 @@ def initialiseNews(newsFile, startID):
 # p: sorted player dictionary
 # scoreFile: file to output plaintext scores
 def plaintextScores(pList, scoreFile):
-
     with open(scoreFile, 'w') as f:
         for player in pList:
             pointStr = (player.name, str(player.points), "\n")
@@ -142,14 +189,17 @@ def outputScores(p, html, k, desc):
 
 # Set up filenames, run game
 if __name__ == '__main__':
-    newsFile = "news.txt" # Text file the news will be written to. 
+    newsFile = "news.txt" # Text file the news will be written to.
+    gameFile = "game.txt" # text file for game input
     startID = "e16000" # Anchor for first entry in news file
     playerFile = "MWAUexampleplayers.csv"
     index_attr = 'name' # Change to e.g. 'email', 'pseudonym' or other unique attr of Player class if want
     
     p = dict() # Player dictionary
     initialiseGame(p, playerFile, newsFile, startID, index_attr)
-    runGame(p, index_attr)
+    gameRunner = GameRunner(p, index_attr, gameFile)
+    gameRunner.runGame()
+    p = gameRunner.players
     score(p)
     # outputScore(p=playerdict, html=True/False, k=attribute-to-sort-by, desc=True/False)
     outputScores(p, False, 'points', True) # simple plaintext scores in point order

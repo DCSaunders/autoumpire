@@ -1,0 +1,2 @@
+"Player1" KILLS "Player2"
+"Player2" KILLS "Player3"
