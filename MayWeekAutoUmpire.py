@@ -4,7 +4,7 @@ import operator
 import os.path
 from Player import Player
 
-NAME_MARKER, KILLS = '"', 'KILLS'
+NAME_MARKER, KILLS, BONUS, TIME, TIME_FORMAT = '"', 'KILLS', 'BONUS', 'TIME', 'hh:mm'
 
 # Enum for columns of playerlist containing relevant info
 # If changing playerlist layout, be sure to edit this enum.
@@ -44,7 +44,10 @@ class GameRunner(object):
         self.players = p
         self.index_attr = index_attr
         self.current_char = ''
-        self.current_token = ''
+        self.current_keyword = ''
+        self.event_players = []
+        self.event_time = ''
+        self.bonus = 0
         self.text = ''
         self.index = 0
 
@@ -52,8 +55,8 @@ class GameRunner(object):
         while self.current_char is not None and self.current_char.isspace():
             self.advance()
         
-    def advance(self):
-        self.index += 1
+    def advance(self, steps=1):
+        self.index += steps
         if self.index > len(self.text) - 1:
             self.current_char = None
         else:
@@ -66,15 +69,51 @@ class GameRunner(object):
             name += self.current_char
             self.advance()
         self.advance()
-        self.current_token = name
+        self.event_players.append(name)
 
-    def getKeyword(self):
+    def extractKeyword(self, keyword):
+        self.current_keyword = keyword
+
+    def setTime(self):
+        self.advance()
+        time_end = self.index + len(TIME_FORMAT)
+        self.event_time = self.text[self.index:time_end]
+        self.advance(len(TIME_FORMAT))
+
+    def set_bonus(self):
+        self.advance()
+        bonus = ''
+        while self.current_char.isdigit():
+            bonus += self.current_char
+            self.advance()
+        self.bonus = int(bonus)
+
+    def eat(self, keyword):
+        eaten = False
+        if self.text[self.index:self.index+len(keyword)] == keyword:
+            self.advance(len(keyword))
+            eaten = True
+        return eaten
+        
+    def readKeyword(self):
         while self.current_char.isalpha():
-            if self.text[self.index:self.index+len(KILLS)] == KILLS:
-                self.current_token = KILLS
-                self.index += len(KILLS)
-                self.current_char = self.text[self.index]
-    
+            if self.eat(KILLS):
+                self.extractKeyword(KILLS)
+            elif self.eat(BONUS):
+                self.extractKeyword(BONUS)
+                self.set_bonus()
+            elif self.eat(TIME):
+                self.setTime()
+                
+    def resetReader(self, line):
+        self.event_players = []
+        self.current_keyword = ''
+        self.event_time = ''
+        self.index = 0
+        self.current_keyword = ''
+        self.text = line
+        self.current_char = self.text[self.index]
+        
     # Runs the game start to finish.
     # NB Example function indexes using name
     # p: player dictionary
@@ -83,27 +122,19 @@ class GameRunner(object):
     def runGame(self):
         with open(self.gameFile, 'r') as f:
             for line in f:
-                self.index = 0
-                self.text = line
-                self.current_char = self.text[self.index]
+                self.resetReader(line)
+  
                 while self.current_char is not None:
                     if self.current_char == NAME_MARKER:
                         self.getPlayerName()
-                        print self.current_token
                     elif self.current_char.isspace():
                         self.skipWhitespace()
                     elif self.current_char.isalpha():
-                        self.getKeyword()
-                        print self.current_token
-
-        
-        self.players["Player1"].killed(self.players["Player3"], "00:00")
-        self.players["Player2"].killed(self.players["Player1"], "11:00")
-        self.players["Player2"].killed(self.players["Player1"], "15:20")
-        self.players["Player2"].killed(self.players["Player1"], "19:25")
-        self.players["Player2"].killed(self.players["Player1"], "08:20")
-        self.players["Player3"].bonus(17)
-        self.players["Player2"].killed(self.players["Player1"], "10:00")
+                        self.readKeyword()
+                if self.current_keyword == KILLS:
+                    self.players[self.event_players[0]].killed(self.players[self.event_players[1]], self.event_time)
+                elif self.current_keyword == BONUS:
+                    self.players[self.event_players[0]].bonus(self.bonus)
         startReporting(p) 
 
 
