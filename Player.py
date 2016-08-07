@@ -49,13 +49,13 @@ class Player(object):
         ID = ID[0] + str(idnum)
         lines[0] = ID+"\n"
 
-        with open(news, 'w') as f:       
+        with open(self.news, 'w') as f:       
             for line in lines:
                 f.write(line)
             f.close()
             rep = self.__reportString(otherPlayer, ID, time)
 
-            with open(news, 'a') as f:
+            with open(self.news, 'a') as f:
                 f.write(rep)
 
 

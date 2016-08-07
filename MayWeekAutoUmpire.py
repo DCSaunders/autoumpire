@@ -120,6 +120,7 @@ class GameRunner(object):
     # index_attr: attribute to index playerlist. Default set to be name
     # gameFile: text file for running game
     def runGame(self):
+        startReporting(self.players) 
         with open(self.gameFile, 'r') as f:
             for line in f:
                 self.resetReader(line)
@@ -135,7 +136,7 @@ class GameRunner(object):
                     self.players[self.event_players[0]].killed(self.players[self.event_players[1]], self.event_time)
                 elif self.current_keyword == BONUS:
                     self.players[self.event_players[0]].bonus(self.bonus)
-        startReporting(p) 
+     
 
 
 # Score the playerlist
