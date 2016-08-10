@@ -5,4 +5,7 @@
 - Develop a main game AU: automatic emailing
 - Develop a main game AU: targetting graph
 - Allow graceful player-removal
-- Allow multi-player events
+- 1 player kills many
+- many players kill many
+- player resurrection time checking
+- multiple pseudonyms
