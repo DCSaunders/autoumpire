@@ -56,10 +56,10 @@ def initialiseGame(p, playerFile, newsFile, startID, index_attr):
 
 class Lexer(object):    
     def __init__(self, text):
-        self.current_char = ''
         self.text = text
         self.index = 0
-
+        self.current_char = self.text[self.index]
+    
     def skipWhitespace(self):
         while self.current_char is not None and self.current_char.isspace():
             self.advance()
@@ -121,7 +121,7 @@ class Lexer(object):
                 continue
             
             if self.current_char == NAME_MARKER:
-                return Token(NAME, self.getPlayerName())
+                return Token(NAME, self.get_player_name())
                 
             if self.current_char.isalpha():
                 return self.readKeyword()
@@ -131,30 +131,41 @@ class Lexer(object):
             
                 
 class Interpreter(object):
-    def __init__(self, lexer, gameFile):
+    def __init__(self, lexer):
         self.lexer = lexer
         self.current_token = self.lexer.get_next_token()
 
+    def error(self):
+        raise Exception('Invalid syntax')
+        
     def eat(self, token_type):
         if self.current_token.type == token_type:
             self.current_token = self.lexer.get_next_token()
         else:
             self.error()
-        
-    def event(self, players):
+
+    def kill_event(self, player_dict, event_players):
+        while self.current_token.type == NAME:
+            event_players.append(self.current_token.value)
+            self.eat(NAME)
+        print event_players
+        for player in event_players[1:]:
+            player_dict[event_players[0]].killed(player_dict[player])
+            
+            
+    def event(self, player_dict):
         event_players = []
-        while self.current_token.type in (NAME, KILLS, BONUS)
+        while self.current_token.type in (NAME, KILLS):
             token = self.current_token
             if token.type == NAME:
-                event_players.append(self.eat(NAME))
-            if self.current_token == KILLS:
+                event_players.append(token.value)
+                self.eat(NAME)
+            if token.type == KILLS:
+                self.eat(KILLS)
+                self.kill_event(player_dict, event_players)
+   
                 
-            self.players[self.event_players[0]].killed(self.players[self.event_players[1]], self.event_time)
-        elif self.current_keyword == BONUS:
-            self.players[self.event_players[0]].bonus(self.bonus)
-     
-  
-    
+            
 # Score the playerlist
 # p: player dictionary
 def score(p):
@@ -243,19 +254,19 @@ if __name__ == '__main__':
     playerFile = "MWAUexampleplayers.csv"
     index_attr = 'name' # Change to e.g. 'email', 'pseudonym' or other unique attr of Player class if want
     
-    players = dict() # Player dictionary
-    initialiseGame(players, playerFile, newsFile, startID, index_attr)
-    startReporting(players) 
-    with open(self.gameFile, 'r') as f:
+    player_dict = dict() # Player dictionary
+    initialiseGame(player_dict, playerFile, newsFile, startID, index_attr)
+    startReporting(player_dict) 
+    with open(gameFile, 'r') as f:
         for line in f:
             lexer = Lexer(line)
             interpreter = Interpreter(lexer)
-            interpreter.event(players)
-    score(players)
+            interpreter.event(player_dict)
+    score(player_dict)
     # outputScore(p=playerdict, html=True/False, k=attribute-to-sort-by, desc=True/False)
-    outputScores(players, False, 'points', True) # simple plaintext scores in point order
-    outputScores(players, True, 'points', True) # html scores in point order
-    outputScores(players, True, 'college', False) # html scores in college order
-    outputScores(players, True, 'name', False) # html scores in name order
-    outputScores(players, True, 'kills', True) # simple plaintext scores in kills order
+    outputScores(player_dict, False, 'points', True) # simple plaintext scores in point order
+    outputScores(player_dict, True, 'points', True) # html scores in point order
+    outputScores(player_dict, True, 'college', False) # html scores in college order
+    outputScores(player_dict, True, 'name', False) # html scores in name order
+    outputScores(player_dict, True, 'kills', True) # simple plaintext scores in kills order
 

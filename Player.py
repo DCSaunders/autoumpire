@@ -100,7 +100,7 @@ class Player(object):
 
 
     # Sets that killed another player, sets a report
-    def killed(self, otherPlayer, time):
+    def killed(self, otherPlayer, time='00:00'):
         if (self.report==True):
             self.__newReport(otherPlayer, time)
 
