@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 
-NAME, NAME_MARKER, KILLS, BONUS, TIME, TIME_FORMAT = 'NAME', '"', 'KILLS', 'BONUS', 'TIME', 'hh:mm'
+AND, EVENT, NAME, NAME_MARKER, KILLS, BONUS, TIME, TIME_FORMAT = 'AND', 'EVENT', 'NAME', '"', 'KILLS', 'BONUS', 'TIME', 'hh:mm'
 
 class Token(object):
     def __init__(self, type, value):
@@ -49,8 +49,9 @@ class Lexer(object):
     def get_time(self):
         self.advance()
         time_end = self.index + len(TIME_FORMAT)
+        time = self.text[self.index:time_end]
         self.advance(len(TIME_FORMAT))
-        return self.text[self.index:time_end]
+        return time
 
     def get_bonus(self):
         self.advance()
@@ -100,6 +101,8 @@ class Interpreter(object):
     def __init__(self, lexer):
         self.lexer = lexer
         self.current_token = self.lexer.get_next_token()
+        self.event_dict = {}
+        self.players = []
 
     def error(self):
         raise Exception('Invalid syntax')
@@ -110,22 +113,29 @@ class Interpreter(object):
         else:
             self.error()
 
-    def kill_event(self, player_dict, event_players):
-        while self.current_token.type == NAME:
-            event_players.append(self.current_token.value)
+    def event_players(self):
+        while self.current_token is not None and self.current_token.type == NAME:
+            self.players.append(self.current_token.value)
             self.eat(NAME)
-        for player in event_players[1:]:
-            player_dict[event_players[0]].killed(player_dict[player])
-            
-            
-    def event(self, player_dict):
-        event_players = []
-        while self.current_token.type in (NAME, KILLS):
-            token = self.current_token
-            if token.type == NAME:
-                event_players.append(token.value)
-                self.eat(NAME)
-            if token.type == KILLS:
-                self.eat(KILLS)
-                self.kill_event(player_dict, event_players)
-   
+                    
+    def event(self):
+        while self.current_token is not None:
+            if self.current_token.type in (NAME, KILLS, EVENT, BONUS, AND):
+                token = self.current_token
+                if token.type == NAME:
+                    self.players = [token.value]
+                    self.eat(NAME)
+                elif token.type == KILLS:
+                    self.eat(KILLS)
+                    self.event_players
+                    self.event_dict[token] = self.players 
+                elif token.type in (EVENT, BONUS):
+                    self.eat(token.type)
+                    self.event_players()
+                    self.event_dict[token] = self.players
+                elif token.type == AND:
+                    self.eat(AND)
+                    self.players = []
+            elif self.current_token.type == TIME:
+                self.event_dict[self.current_token.type] = self.current_token.value
+                self.eat(TIME)

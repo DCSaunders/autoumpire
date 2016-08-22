@@ -133,7 +133,8 @@ if __name__ == '__main__':
         for line in f:
             lexer = Lexer(line)
             interpreter = Interpreter(lexer)
-            interpreter.event(player_dict)
+            interpreter.event()
+            print interpreter.event_dict
     score(player_dict)
     # outputScore(p=playerdict, html=True/False, k=attribute-to-sort-by, desc=True/False)
     outputScores(player_dict, False, 'points', True) # simple plaintext scores in point order
