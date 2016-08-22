@@ -3,8 +3,7 @@ import csv
 import operator
 import os.path
 from Player import Player
-from interpreter import Interpreter
-from interpreter import Lexer
+import game_reader
 
 # Enum for columns of playerlist containing relevant info
 # If changing playerlist layout, be sure to edit this enum.
@@ -117,7 +116,24 @@ def outputScores(p, html, k, desc):
     else:
         plaintextScores(pList, fileName)
 
-
+def run_game(gameFile, player_dict):
+    with open(gameFile, 'r') as f:
+        for line in f:
+            lexer = game_reader.Lexer(line)
+            interpreter = game_reader.Interpreter(lexer)
+            interpreter.event()
+            events = interpreter.event_dict
+            time = events.pop(game_reader.TIME, None)
+            for token in events:
+                if token.type == game_reader.KILLS:
+                    killer = player_dict[events[token][0]]
+                    for dead_player_name in events[token][1:]:
+                        killer.killed(player_dict[dead_player_name], time)
+                elif token.type == game_reader.BONUS:
+                    for player_name in events[token]:
+                        player_dict[player_name].bonus(token.value)
+                
+        
 # Set up filenames, run game
 if __name__ == '__main__':
     newsFile = "news.txt" # Text file the news will be written to.
@@ -128,13 +144,8 @@ if __name__ == '__main__':
     
     player_dict = dict() # Player dictionary
     initialiseGame(player_dict, playerFile, newsFile, startID, index_attr)
-    startReporting(player_dict) 
-    with open(gameFile, 'r') as f:
-        for line in f:
-            lexer = Lexer(line)
-            interpreter = Interpreter(lexer)
-            interpreter.event()
-            print interpreter.event_dict
+    startReporting(player_dict)
+    run_game(gameFile, player_dict)
     score(player_dict)
     # outputScore(p=playerdict, html=True/False, k=attribute-to-sort-by, desc=True/False)
     outputScores(player_dict, False, 'points', True) # simple plaintext scores in point order

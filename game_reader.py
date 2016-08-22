@@ -127,7 +127,7 @@ class Interpreter(object):
                     self.eat(NAME)
                 elif token.type == KILLS:
                     self.eat(KILLS)
-                    self.event_players
+                    self.event_players()
                     self.event_dict[token] = self.players 
                 elif token.type in (EVENT, BONUS):
                     self.eat(token.type)
