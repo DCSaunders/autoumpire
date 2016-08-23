@@ -72,6 +72,10 @@ class Lexer(object):
         while self.current_char.isalpha():
             if self.eat(KILLS):
                 return Token(KILLS, KILLS)
+            elif self.eat(EVENT):
+                return Token(EVENT, EVENT)
+            elif self.eat(AND):
+                return Token(AND, AND)
             elif self.eat(BONUS):
                 return Token(BONUS, self.get_bonus())
             elif self.eat(TIME):

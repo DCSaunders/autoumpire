@@ -9,55 +9,6 @@ class Player(object):
     waterStatus = "water status"
     notes = "notes"
     email = "email"
-    report = False
-
-
-    # Mark that new report templates should be created
-    def startReporting(self):
-        self.report = True
-
-
-    # Build HTML string for report template
-    def __reportString(self, otherPlayer, ID, time):
-        nl = "\n"
-        event_s = "<div xmlns="" class=\"event\">"
-        hr = "<hr/>"
-        id_s = "<span id={}>[{}]".format(ID, time)
-        head_s = "<span class=\"headline\">"
-        report_s = "<div class=\"report\">"
-        indent_s = "<div class=\"indent\">"
-        p_s = "<p>"
-        p_e = "</p>"
-        div_e = "</div>"
-        span_e = "</span>"
-
-        report = ("{}{}{}{}{}{}".format(nl, nl, event_s, hr, id_s, head_s),
-                  " {} ({}) kills {} ({}) ".format(self.pseudonym, self.name, otherPlayer.pseudonym, otherPlayer.name),
-                  "{}{}{}{}".format(span_e, span_e, span_e, hr),
-                  "{}{}{}{} reports: {}{}{}{}{}".format(report_s, indent_s, p_s, self.pseudonym, nl, p_e, div_e, div_e, div_e),
-                  "{}{}{}{} reports: {}{}{}{}{}".format(report_s, indent_s, p_s, otherPlayer.pseudonym, nl, p_e, div_e, div_e, div_e))
-        return "".join(report)
-
-        
-    # Create a template for a new report.
-    def __newReport(self, otherPlayer, time):
-        lines = open(self.news, 'r').readlines()
-
-        # ID is formed of one letter, then numbers
-        ID = lines[0]
-        idnum = int(ID[1:]) + 1
-        ID = ID[0] + str(idnum)
-        lines[0] = ID+"\n"
-
-        with open(self.news, 'w') as f:       
-            for line in lines:
-                f.write(line)
-            f.close()
-            rep = self.__reportString(otherPlayer, ID, time)
-
-            with open(self.news, 'a') as f:
-                f.write(rep)
-
 
 
     # Notes that another player has killed you.
@@ -69,7 +20,7 @@ class Player(object):
         self.deaths+=1
 
 
-    # Add bonus points. Does NOT add a report.
+    # Add bonus points
     def bonus(self, bPoints):
         self.bonusPoints += bPoints
 
@@ -100,16 +51,14 @@ class Player(object):
 
 
     # Sets that killed another player, sets a report
-    def killed(self, otherPlayer, time):
-        if (self.report==True):
-            self.__newReport(otherPlayer, time)
-
-        if otherPlayer in self.killedList:
-            self.killedList[otherPlayer]+=1
-        else:
-            self.killedList[otherPlayer]=1
-        self.kills+=1
-        otherPlayer.died(self)
+    def killed(self, otherPlayers, time):
+        for otherPlayer in otherPlayers:
+            if otherPlayer in self.killedList:
+                self.killedList[otherPlayer]+=1
+            else:
+                self.killedList[otherPlayer]=1
+            self.kills+=1
+            otherPlayer.died(self)
 
         
     def __init__(self, pName, pPseudonym, pCollege, pAddress, pWaterStatus, pNotes, pEmail, news):
@@ -125,6 +74,5 @@ class Player(object):
         self.deaths = 0
         self.bonusPoints = 0
         self.points = 0
-        self.report = False
         self.killedList = {}
         self.killedByList = {}

@@ -1,3 +1,4 @@
-"Player1" KILLS "Player2" TIME=11:05
+"Player1" KILLS "Player2" AND "Player2" KILLS "Player3" AND "Player1" BONUS=4 TIME=11:05
+EVENT "Player1" TIME=12:05
 "Player3" BONUS=17
-"Player2" KILLS "Player3" "Player1" TIME=19:10
+"Player2" KILLS "Player3" "Player1" TIME=19:10 

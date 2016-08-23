@@ -5,16 +5,15 @@ import os.path
 from Player import Player
 import game_reader
 
-# Enum for columns of playerlist containing relevant info
-# If changing playerlist layout, be sure to edit this enum.
+# If changing playerlist column headers, be sure to edit these strings.
 class Field(object):
-    name = 0
-    pseud = 1
-    college = 2
-    address = 3
-    water = 4
-    notes = 5
-    email = 6
+    name = 'Name'
+    pseud = 'Pseudonym'
+    college = 'College'
+    address = 'Address'
+    water = 'Water Status'
+    notes = 'Notes'
+    email = 'Email'
     
 
 # Initialises playerlist and newsfile
@@ -26,12 +25,10 @@ class Field(object):
 def initialiseGame(p, playerFile, newsFile, startID, index_attr):
     initialiseNews(newsFile, startID)
     with open(playerFile, 'rb') as f:
-        reader = csv.reader(f)
-        reader.next()
-           
+        reader = csv.DictReader(f)            
         for row in reader:
-            player = Player(row[Field.name],row[Field.pseud],row[Field.college], \
-                            row[Field.address],row[Field.water],row[Field.notes], \
+            player = Player(row[Field.name], row[Field.pseud], row[Field.college], 
+                            row[Field.address], row[Field.water], row[Field.notes], 
                             row[Field.email], newsFile)
             # Assign player dictionary, indexing by attribute defined in main
             p[getattr(player, index_attr)] = player
@@ -44,24 +41,64 @@ def score(p):
         player.calcPoints()
 
         
-# Enable addition of new report templates
-# p: player dictionary
-def startReporting(p):
-    for player in p.itervalues():
-        player.startReporting()
-
-
 # Sets up news file with anchor for unique HTML links
 # newsFile: output file.
 # startID: ID for unique HTML links
 def initialiseNews(newsFile, startID):
-    if (os.path.isfile(newsFile) == False):
-        with open(newsFile, 'w') as f:
+    with open(newsFile, 'w') as f:
             f.write(startID)
-    else:
-        print 'News file already initialised'
 
 
+
+# Build HTML string for report template
+def reportString(players, event_str, ID, time):
+    nl = "\n"
+    event_s = "<div xmlns="" class=\"event\">"
+    hr = "<hr/>"
+    id_s = "<span id={}>[{}]".format(ID, time)
+    head_s = "<span class=\"headline\">"
+    report_s = "<div class=\"report\">"
+    indent_s = "<div class=\"indent\">"
+    p_s = "<p>"
+    p_e = "</p>"
+    div_e = "</div>"
+    span_e = "</span>"
+    
+    report_str = "".join(["{}{}{}{} reports: {}{}{}{}{}".format(report_s, indent_s, p_s, player.pseudonym, nl, p_e, div_e, div_e, div_e) for player in players])
+    report = ("{}{}{}{}{}{}".format(nl, nl, event_s, hr, id_s, head_s),
+              event_str,
+              "{}{}{}{}".format(span_e, span_e, span_e, hr),
+              report_str)
+
+    return "".join(report)
+
+def kill_str(players):
+    killer = players[0]
+    otherPlayers = players[1:]
+    killed_str =  ", ".join(["{} ({})".format(otherPlayer.pseudonym, otherPlayer.name) for otherPlayer in otherPlayers])
+    return " {} ({}) kills {}".format(killer.pseudonym, killer.name, killed_str)
+
+    
+# Create a template for a new report.
+def newReport(news, events, players, time):
+    lines = open(news, 'r').readlines()
+
+    # ID is formed of one letter, then numbers
+    ID = lines[0]
+    idnum = int(ID[1:]) + 1
+    ID = ID[0] + str(idnum)
+    lines[0] = ID+"\n"
+    event_str = kill_str(players)
+    with open(news, 'w') as f:       
+        for line in lines:
+            f.write(line)
+        f.close()
+        rep = reportString(players, event_str, ID, time)
+
+        with open(news, 'a') as f:
+            f.write(rep)
+
+            
 # Output plaintext scores
 # p: sorted player dictionary
 # scoreFile: file to output plaintext scores
@@ -116,7 +153,7 @@ def outputScores(p, html, k, desc):
     else:
         plaintextScores(pList, fileName)
 
-def run_game(gameFile, player_dict):
+def run_game(gameFile, newsFile, player_dict):
     with open(gameFile, 'r') as f:
         for line in f:
             lexer = game_reader.Lexer(line)
@@ -124,15 +161,15 @@ def run_game(gameFile, player_dict):
             interpreter.event()
             events = interpreter.event_dict
             time = events.pop(game_reader.TIME, None)
-            for token in events:
+            
+            for token in events:    
                 if token.type == game_reader.KILLS:
                     killer = player_dict[events[token][0]]
-                    for dead_player_name in events[token][1:]:
-                        killer.killed(player_dict[dead_player_name], time)
+                    killer.killed([player_dict[dead_player_name] for dead_player_name in events[token][1:]], time)
                 elif token.type == game_reader.BONUS:
                     for player_name in events[token]:
                         player_dict[player_name].bonus(token.value)
-                
+            newReport(newsFile, events, [player_dict[player_name] for player_name in events[token]], time)
         
 # Set up filenames, run game
 if __name__ == '__main__':
@@ -144,8 +181,7 @@ if __name__ == '__main__':
     
     player_dict = dict() # Player dictionary
     initialiseGame(player_dict, playerFile, newsFile, startID, index_attr)
-    startReporting(player_dict)
-    run_game(gameFile, player_dict)
+    run_game(gameFile, newsFile, player_dict)
     score(player_dict)
     # outputScore(p=playerdict, html=True/False, k=attribute-to-sort-by, desc=True/False)
     outputScores(player_dict, False, 'points', True) # simple plaintext scores in point order
