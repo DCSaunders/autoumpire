@@ -1,10 +1,8 @@
-- Develop a main game AU: class design/implementation
+- Develop a main game AU: competence
+- Develop a main game AU: police players
 - Develop a main game AU: automatic emailing
 - Develop a main game AU: targetting graph
 - Allow graceful player-removal
-- any line ONLY with time gives report
-- Correct report strings for events and bonuses (with time)
-- many kills many in one report
 - player resurrection time checking
 - multiple pseudonyms
 - inline comments
