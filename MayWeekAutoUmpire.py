@@ -63,13 +63,11 @@ def reportString(players, event_str, ID, time):
     p_e = "</p>"
     div_e = "</div>"
     span_e = "</span>"
-    
     report_str = "".join(["{}{}{}{} reports: {}{}{}{}{}".format(report_s, indent_s, p_s, player.pseudonym, nl, p_e, div_e, div_e, div_e) for player in players])
     report = ("{}{}{}{}{}{}".format(nl, nl, event_s, hr, id_s, head_s),
               event_str,
               "{}{}{}{}".format(span_e, span_e, span_e, hr),
               report_str)
-
     return "".join(report)
 
 def kill_str(players):
@@ -167,12 +165,14 @@ def run_game(gameFile, newsFile, player_dict):
             events = interpreter.event_dict
             time = events.pop(game_reader.TIME, None)
             event_strings = []
+            players = set()
             for token in events:
-                players = [player_dict[player_name] for player_name in events[token]]
+                event_players = [player_dict[player_name] for player_name in events[token]]
+                players = players.union(event_players)
                 if token.type == game_reader.KILLS:
-                    killer = player_dict[events[token][0]]
-                    killer.killed([player_dict[dead_player_name] for dead_player_name in events[token][1:]], time)
-                    event_strings.append(kill_str(players))
+                    killer = event_players[0]
+                    killer.killed(event_players[1:], time)
+                    event_strings.append(kill_str(event_players))
                 elif token.type == game_reader.BONUS:
                     for player_name in events[token]:
                         player_dict[player_name].bonus(token.value)
