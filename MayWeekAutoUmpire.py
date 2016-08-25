@@ -76,25 +76,30 @@ def kill_str(players):
     killer = players[0]
     otherPlayers = players[1:]
     killed_str =  ", ".join(["{} ({})".format(otherPlayer.pseudonym, otherPlayer.name) for otherPlayer in otherPlayers])
-    return " {} ({}) kills {}".format(killer.pseudonym, killer.name, killed_str)
+    return "{} ({}) kills {}".format(killer.pseudonym, killer.name, killed_str)
+
+def bonus_str(players):
+    bonus_players = ["{}".format(player.pseudonym) for player in players]
+    return "bonus points to {}".format(', '.join(bonus_players)) 
+
+def event_str(players):
+    event_players = ["{}".format(player.pseudonym) for player in players]
+    return "an event happens involving {}".format(', '.join(event_players))
 
     
 # Create a template for a new report.
-def newReport(news, events, players, time):
+def newReport(news, event_str, players, time):
     lines = open(news, 'r').readlines()
-
     # ID is formed of one letter, then numbers
     ID = lines[0]
     idnum = int(ID[1:]) + 1
     ID = ID[0] + str(idnum)
     lines[0] = ID+"\n"
-    event_str = kill_str(players)
     with open(news, 'w') as f:       
         for line in lines:
             f.write(line)
         f.close()
         rep = reportString(players, event_str, ID, time)
-
         with open(news, 'a') as f:
             f.write(rep)
 
@@ -161,21 +166,27 @@ def run_game(gameFile, newsFile, player_dict):
             interpreter.event()
             events = interpreter.event_dict
             time = events.pop(game_reader.TIME, None)
-            
-            for token in events:    
+            event_strings = []
+            for token in events:
+                players = [player_dict[player_name] for player_name in events[token]]
                 if token.type == game_reader.KILLS:
                     killer = player_dict[events[token][0]]
                     killer.killed([player_dict[dead_player_name] for dead_player_name in events[token][1:]], time)
+                    event_strings.append(kill_str(players))
                 elif token.type == game_reader.BONUS:
                     for player_name in events[token]:
                         player_dict[player_name].bonus(token.value)
-            newReport(newsFile, events, [player_dict[player_name] for player_name in events[token]], time)
+                    event_strings.append(bonus_str(players))
+                elif token.type == game_reader.EVENT:
+                    event_strings.append(event_str(players))
+            if time:
+                newReport(newsFile, ', '.join(event_strings), players, time)
         
 # Set up filenames, run game
 if __name__ == '__main__':
     newsFile = "news.txt" # Text file the news will be written to.
     gameFile = "game.txt" # text file for game input
-    startID = "e16000" # Anchor for first entry in news file
+    startID = "e17000" # Anchor for first entry in news file
     playerFile = "MWAUexampleplayers.csv"
     index_attr = 'name' # Change to e.g. 'email', 'pseudonym' or other unique attr of Player class if want
     
