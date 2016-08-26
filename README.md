@@ -1,5 +1,4 @@
 # autoumpire
-assassins' game autoumpire
 Tool to help with umpiring an Assassins game, specifically the May Week game. The current input involves a CSV file containing relevant player details (should be collected on signup) and writing a game file, which contains a near-natural-language description of events. Sample inputs are provided in this repo.
 
 Running MayWeekAutoUmpire.py with the gamefile and the player CSV in the same directory runs every event in the gamefile from start to finish.
