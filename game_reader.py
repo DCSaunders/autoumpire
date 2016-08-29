@@ -1,7 +1,7 @@
 #!/usr/bin/env python
+import sys
 
-
-AND, EVENT, NAME, NAME_MARKER, KILLS, BONUS, TIME, TIME_FORMAT = 'AND', 'EVENT', 'NAME', '"', 'KILLS', 'BONUS', 'TIME', 'hh:mm'
+AND, EVENT, NAME, NAME_MARKER, COMMENT_MARKER, KILLS, BONUS, TIME, TIME_FORMAT = 'AND', 'EVENT', 'NAME', '"', '#', 'KILLS', 'BONUS', 'TIME', 'hh:mm'
 
 class Token(object):
     def __init__(self, type, value):
@@ -82,10 +82,14 @@ class Lexer(object):
                 return Token(TIME, self.get_time())
 
     def error(self):
-        raise Exception('invalid character: {}'.format(self.current_char))
+        error_char = self.current_char
+        error_str = 'Error with character %s on line %s' % (error_char, self.text)
+        sys.exit(error_str)
         
     def get_next_token(self):
         while self.current_char is not None:
+            if self.current_char == COMMENT_MARKER:
+                break
             
             if self.current_char.isspace():
                 self.skipWhitespace()

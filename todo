@@ -5,6 +5,5 @@
 - Allow graceful player-removal
 - player resurrection time checking
 - multiple pseudonyms
-- inline comments
 - enter date change
-- useful error messages on unexpected syntax
+- some kind of warning for mismatched(/forgotten) name-markers would be nice
