@@ -2,4 +2,4 @@
 EVENT "Player1" TIME=12:05
 "Player3" BONUS=17 # I am a comment and should not be read
 # I am another comment
-"Player2" KILLS "Player3" AND EVENT "Player1" TIME=19:10 
+"Player2" KILLS "Player3" "Player1" AND EVENT "Player1" TIME=19:10 
