@@ -21,7 +21,8 @@ class Token(object):
 
 
 class Lexer(object):    
-    def __init__(self, text):
+    def __init__(self, text, name_set):
+        self.names = name_set
         self.text = text
         self.index = 0
         self.current_char = self.text[self.index]
@@ -40,11 +41,14 @@ class Lexer(object):
     def get_player_name(self):
         self.advance()
         name = ''
-        while self.current_char is not NAME_MARKER:
+        while self.current_char not in (NAME_MARKER, None):
             name += self.current_char
             self.advance()
         self.advance()
-        return name
+        name = name.strip()
+        if name in self.names:
+            return name
+        sys.exit('Reading unknown name: {}'.format(name)) 
 
     def get_time(self):
         self.advance()
@@ -80,6 +84,7 @@ class Lexer(object):
                 return Token(BONUS, self.get_bonus())
             elif self.eat(TIME):
                 return Token(TIME, self.get_time())
+        self.error()
 
     def error(self):
         error_char = self.current_char

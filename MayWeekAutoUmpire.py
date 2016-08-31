@@ -157,9 +157,10 @@ def outputScores(p, html, k, desc):
         plaintextScores(pList, fileName)
 
 def run_game(gameFile, newsFile, player_dict):
+    name_set = set(player_dict.keys())
     with open(gameFile, 'r') as f:
         for line in f:
-            lexer = game_reader.Lexer(line)
+            lexer = game_reader.Lexer(line, name_set)
             interpreter = game_reader.Interpreter(lexer)
             interpreter.event()
             events = interpreter.event_dict
