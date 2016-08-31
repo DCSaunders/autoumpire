@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 
-AND, EVENT, NAME, NAME_MARKER, COMMENT_MARKER, KILLS, BONUS, TIME, TIME_FORMAT = 'AND', 'EVENT', 'NAME', '"', '#', 'KILLS', 'BONUS', 'TIME', 'hh:mm'
+AND, EVENT, NAME, NAME_MARKER, COMMENT_MARKER, KILLS, BONUS, TIME, TIME_FORMAT, DATE, DATE_FORMAT = 'AND', 'EVENT', 'NAME', '"', '#', 'KILLS', 'BONUS', 'TIME', 'hh:mm', 'DATE', 'dd.mm.yy' 
 
 class Token(object):
     def __init__(self, type, value):
@@ -56,6 +56,13 @@ class Lexer(object):
         time = self.text[self.index:time_end]
         self.advance(len(TIME_FORMAT))
         return time
+    
+    def get_date(self):
+        self.advance()
+        date_end = self.index + len(DATE_FORMAT)
+        date = self.text[self.index:date_end]
+        self.advance(len(DATE_FORMAT))
+        return date
 
     def get_bonus(self):
         self.advance()
@@ -84,6 +91,8 @@ class Lexer(object):
                 return Token(BONUS, self.get_bonus())
             elif self.eat(TIME):
                 return Token(TIME, self.get_time())
+            elif self.eat(DATE):
+                return Token(DATE, self.get_date())
         self.error()
 
     def error(self):
@@ -138,17 +147,13 @@ class Interpreter(object):
                 if token.type == NAME:
                     self.players = [token.value]
                     self.eat(NAME)
-                elif token.type == KILLS:
-                    self.eat(KILLS)
-                    self.event_players()
-                    self.event_dict[token] = self.players 
-                elif token.type in (EVENT, BONUS):
+                elif token.type in (KILLS, EVENT, BONUS):
                     self.eat(token.type)
                     self.event_players()
                     self.event_dict[token] = self.players
                 elif token.type == AND:
                     self.eat(AND)
                     self.players = []
-            elif self.current_token.type == TIME:
+            elif self.current_token.type in (TIME, DATE):
                 self.event_dict[self.current_token.type] = self.current_token.value
-                self.eat(TIME)
+                self.eat(self.current_token.type)
