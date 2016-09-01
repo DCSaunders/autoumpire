@@ -20,11 +20,9 @@ class Field(object):
 # Initialises playerlist and newsfile
 # p: player dictionary.
 # playerFile: csv file containing playerlist.
-# newsFile: text file to output report templates
-# startID: anchor ID used for unique HTML links
 # index_attr: attribute to index playerlist. Default set to be name
-def initialiseGame(p, playerFile, newsFile, startID, index_attr):
-    initialiseNews(newsFile, startID)
+def initialiseGame(p, playerFile, index_attr, newsFile):
+    open(newsFile, 'w').close()
     with open(playerFile, 'rb') as f:
         reader = csv.DictReader(f)            
         for row in reader:
@@ -40,16 +38,6 @@ def initialiseGame(p, playerFile, newsFile, startID, index_attr):
 def score(p):
     for player in p.itervalues():
         player.calcPoints()
-
-        
-# Sets up news file with anchor for unique HTML links
-# newsFile: output file.
-# startID: ID for unique HTML links
-def initialiseNews(newsFile, startID):
-    with open(newsFile, 'w') as f:
-            f.write(startID)
-
-
 
 # Build HTML string for report template
 def reportString(players, event_str, ID, event_time):
@@ -87,23 +75,17 @@ def event_str(players):
 
     
 # Create a template for a new report.
-def newReport(news, event_str, players, event_time, date=None):
-    lines = open(news, 'r').readlines()
-    # ID is formed of one letter, then numbers
-    ID = lines[0]
-    idnum = int(ID[1:]) + 1
-    ID = ID[0] + str(idnum)
-    lines[0] = ID+"\n"
-    with open(news, 'w') as f:       
-        for line in lines:
-            f.write(line)
-        f.close()
-        if not date:
-            rep = reportString(players, event_str, ID, event_time)
-        else:
-            rep = get_date(date)
-        with open(news, 'a') as f:
-            f.write(rep)
+def newReport(news, event_str, players, report_id, event_time, date=None):
+    if not date:
+        rep = reportString(players, event_str, report_id, event_time)
+        report_num = str(int(report_id[1:]) + 1).zfill(len(report_id) - 1)
+        report_id = report_id[0] + report_num
+    else:
+        rep = get_date(date)
+    with open(news, 'a') as f:
+        f.write(rep)
+    if report_id:
+        return report_id
 
             
 # Output plaintext scores
@@ -161,10 +143,12 @@ def outputScores(p, html, k, desc):
         plaintextScores(pList, fileName)
 
 def get_date(date):
-    date_str = '\n<h3 xmlns="">{}, {} {}</h3>\n'.format(date.tm_wday, date.tm_mon, date.tm_mday)
+    date_format = '%A, %d %B'
+    converted_date = time.strftime(date_format, date)
+    date_str = '\n<h3 xmlns="">{}</h3>\n'.format(converted_date)
     return date_str
     
-def run_game(gameFile, newsFile, player_dict):
+def run_game(gameFile, newsFile, player_dict, report_id):
     name_set = set(player_dict.keys())
     date = None
     date_format = '%d.%m.%y'
@@ -178,7 +162,7 @@ def run_game(gameFile, newsFile, player_dict):
             if game_reader.DATE in events:
                 date = events.pop(game_reader.DATE, None)
                 date = time.strptime(date, date_format)
-                newReport(newsFile, None, None, None, date=date)
+                newReport(newsFile, None, None, None, None, date=date)
             event_strings = []
             players = set()
             for token in events:
@@ -196,18 +180,18 @@ def run_game(gameFile, newsFile, player_dict):
                     event_strings.append(event_str(players))
             if event_time:
                 all_events = ', '.join(event_strings)
-                newReport(newsFile, all_events, players, event_time)
+                report_id = newReport(newsFile, all_events, players, report_id, event_time)
         
 # Set up filenames, run game
 if __name__ == '__main__':
     newsFile = "news.txt" # Text file the news will be written to.
     gameFile = "game.txt" # text file for game input
-    startID = "e17000" # Anchor for first entry in news file
+    report_id = "e17000" # Anchor for first entry in news file
     playerFile = "MWAUexampleplayers.csv"
     index_attr = 'name'
     player_dict = dict() # Player dictionary
-    initialiseGame(player_dict, playerFile, newsFile, startID, index_attr)
-    run_game(gameFile, newsFile, player_dict)
+    initialiseGame(player_dict, playerFile, index_attr, newsFile)
+    run_game(gameFile, newsFile, player_dict, report_id)
     score(player_dict)
     outputScores(player_dict, False, 'points', True) # simple plaintext scores in point order
     outputScores(player_dict, True, 'points', True) # html scores in point order
