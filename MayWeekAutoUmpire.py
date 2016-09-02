@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import ConfigParser
 import csv
 import operator
 import os.path
@@ -15,22 +16,21 @@ class Field(object):
     water = 'Water Status'
     notes = 'Notes'
     email = 'Email'
-    
 
 # Initialises playerlist and newsfile
-# p: player dictionary.
+# player_dict: dictionary mapping string player name to player object
 # playerFile: csv file containing playerlist.
-# index_attr: attribute to index playerlist. Default set to be name
-def initialiseGame(p, playerFile, index_attr, newsFile):
-    open(newsFile, 'w').close()
-    with open(playerFile, 'rb') as f:
+def initialise_game(player_dict, player_file, news_file):
+    open(news_file, 'w').close()
+    with open(player_file, 'rb') as f:
         reader = csv.DictReader(f)            
         for row in reader:
-            player = Player(row[Field.name], row[Field.pseud], row[Field.college], 
-                            row[Field.address], row[Field.water], row[Field.notes], 
-                            row[Field.email], newsFile)
+            player = Player(row[Field.name], row[Field.pseud],
+                            row[Field.college], row[Field.address],
+                            row[Field.water], row[Field.notes], 
+                            row[Field.email], news_file)
             # Assign player dictionary, indexing by attribute defined in main
-            p[getattr(player, index_attr)] = player
+            player_dict[player.name] = player
 
 
 # Score the playerlist
@@ -40,7 +40,7 @@ def score(p):
         player.calcPoints()
 
 # Build HTML string for report template
-def reportString(players, event_str, ID, event_time):
+def report_string(players, event_str, ID, event_time):
     nl = "\n"
     event_s = "<div xmlns="" class=\"event\">"
     hr = "<hr/>"
@@ -62,7 +62,7 @@ def reportString(players, event_str, ID, event_time):
 def kill_str(players):
     killer = players[0]
     otherPlayers = players[1:]
-    killed_str =  ", ".join(["{} ({})".format(otherPlayer.pseudonym, otherPlayer.name) for otherPlayer in otherPlayers])
+    killed_str =  " and ".join(["{} ({})".format(otherPlayer.pseudonym, otherPlayer.name) for otherPlayer in otherPlayers])
     return "{} ({}) kills {}".format(killer.pseudonym, killer.name, killed_str)
 
 def bonus_str(players):
@@ -75,13 +75,13 @@ def event_str(players):
 
     
 # Create a template for a new report.
-def newReport(news, event_str, players, report_id, event_time, date=None):
+def new_report(news, event_str, players, report_id, event_time, date=None):
     if not date:
-        rep = reportString(players, event_str, report_id, event_time)
+        rep = report_string(players, event_str, report_id, event_time)
         report_num = str(int(report_id[1:]) + 1).zfill(len(report_id) - 1)
         report_id = report_id[0] + report_num
     else:
-        rep = get_date(date)
+        rep = date
     with open(news, 'a') as f:
         f.write(rep)
     if report_id:
@@ -91,19 +91,18 @@ def newReport(news, event_str, players, report_id, event_time, date=None):
 # Output plaintext scores
 # p: sorted player dictionary
 # scoreFile: file to output plaintext scores
-def plaintextScores(pList, scoreFile):
-    with open(scoreFile, 'w') as f:
-        for player in pList:
-            pointStr = (player.name, str(player.points), "\n")
-            pointStr = " ".join(pointStr)
-            print pointStr
-            f.write(pointStr)
+def plaintext_scores(player_list, score_file):
+    with open(score_file, 'w') as f:
+        for player in player_list:
+            point_str = ' '.join((player.name, str(player.points), "\n"))
+            print point_str
+            f.write(point_str)
 
 
 # Output scores in HTML table
 # p: sorted player dictionary.
-# scoreFile: file for output.
-def htmlScores(pList, scoreFile):
+# score_file: file for output.
+def html_scores(player_list, score_file):
     t_s = "<table>"
     t_e = "</table>"
     row_s = "<tr>"
@@ -111,19 +110,18 @@ def htmlScores(pList, scoreFile):
     entry_s = "<td>"
     entry_e = "</td>"
     nl = "\n"
-
-    with open(scoreFile, 'w') as f:
+    with open(score_file, 'w') as f:
         # Write scores in table
         f.write(t_s)
-
-        for player in pList:
-            pointStr = (player.name, player.pseudonym,
-                        player.address, player.college,
-                        player.waterStatus, player.notes,
-                        str(player.kills), str(player.deaths),
-                        '%.2f' % player.points)
-            pointStr ="{}{}".format(entry_e, entry_s).join(pointStr)
-            f.write("{}{}{}{}{}{}".format(row_s, entry_s, pointStr, entry_e, row_e, nl))
+        for player in player_list:
+            point_str = (player.name, player.pseudonym,
+                      player.address, player.college,
+                      player.waterStatus, player.notes,
+                      str(player.kills), str(player.deaths),
+                      '%.2f' % player.points)
+            points ="{}{}".format(entry_e, entry_s).join(point_str)
+            out = '%s%s%s%s%s%s' % (row_s, entry_s, points, entry_e, row_e, nl)
+            f.write(out)
         f.write(t_e)
 
 
@@ -132,27 +130,27 @@ def htmlScores(pList, scoreFile):
 # k: key to sort on.
 # html: false if plaintext output, true if html table
 # desc: false if ascending, true if descending.
-def outputScores(p, html, k, desc):
-    pList = sorted(p.values(), key=operator.attrgetter(k), reverse = desc)
-    oType = "html" if html else "plaintext"
-    fileName = "scores-{}-{}.txt".format(k, oType)
-
+def output_scores(p, html, k, desc):
+    player_list = sorted(p.values(), key=operator.attrgetter(k), reverse = desc)
+    output_format = "html" if html else "plaintext"
+    file_name = "scores-{}-{}.txt".format(k, output_format)
     if (html):
-        htmlScores(pList, fileName)
+        html_scores(player_list, file_name)
     else:
-        plaintextScores(pList, fileName)
+        plaintext_scores(player_list, file_name)
 
-def get_date(date):
-    date_format = '%A, %d %B'
-    converted_date = time.strftime(date_format, date)
+def get_date(original_date):
+    original_format = '%d.%m.%y'
+    date_struct = time.strptime(original_date, original_format)
+    new_format = '%A, %d %B'
+    converted_date = time.strftime(new_format, date_struct)
     date_str = '\n<h3 xmlns="">{}</h3>\n'.format(converted_date)
     return date_str
     
-def run_game(gameFile, newsFile, player_dict, report_id):
+def run_game(game_file, news_file, player_dict, report_id):
     name_set = set(player_dict.keys())
     date = None
-    date_format = '%d.%m.%y'
-    with open(gameFile, 'r') as f:
+    with open(game_file, 'r') as f:
         for line in f:
             lexer = game_reader.Lexer(line, name_set)
             interpreter = game_reader.Interpreter(lexer)
@@ -161,41 +159,40 @@ def run_game(gameFile, newsFile, player_dict, report_id):
             event_time = events.pop(game_reader.TIME, None)
             if game_reader.DATE in events:
                 date = events.pop(game_reader.DATE, None)
-                date = time.strptime(date, date_format)
-                newReport(newsFile, None, None, None, None, date=date)
+                date_str = get_date(date)
+                new_report(news_file, None, None, None, None, date=date_str)
             event_strings = []
-            players = set()
+            event_players = set()
             for token in events:
-                event_players = [player_dict[player_name] for player_name in events[token]]
-                players = players.union(event_players)
+                token_players = [player_dict[name] for name in events[token]]
+                event_players = event_players.union(token_players)
                 if token.type == game_reader.KILLS:
-                    killer = event_players[0]
-                    killer.killed(event_players[1:], event_time)
-                    event_strings.append(kill_str(event_players))
+                    killer = token_players[0]
+                    killer.killed(token_players[1:], event_time)
+                    event_strings.append(kill_str(token_players))
                 elif token.type == game_reader.BONUS:
                     for player_name in events[token]:
                         player_dict[player_name].bonus(token.value)
-                    event_strings.append(bonus_str(players))
+                    event_strings.append(bonus_str(token_players))
                 elif token.type == game_reader.EVENT:
-                    event_strings.append(event_str(players))
+                    event_strings.append(event_str(token_players))
             if event_time:
                 all_events = ', '.join(event_strings)
-                report_id = newReport(newsFile, all_events, players, report_id, event_time)
+                report_id = new_report(news_file, all_events, event_players, report_id, event_time)
         
 # Set up filenames, run game
 if __name__ == '__main__':
-    newsFile = "news.txt" # Text file the news will be written to.
-    gameFile = "game.txt" # text file for game input
+    news_file = "news.txt" # Text file the news will be written to.
+    game_file = "game.txt" # text file for game input
     report_id = "e17000" # Anchor for first entry in news file
-    playerFile = "MWAUexampleplayers.csv"
-    index_attr = 'name'
-    player_dict = dict() # Player dictionary
-    initialiseGame(player_dict, playerFile, index_attr, newsFile)
-    run_game(gameFile, newsFile, player_dict, report_id)
+    player_file = "MWAUexampleplayers.csv"
+    player_dict = dict() 
+    initialise_game(player_dict, player_file, news_file)
+    run_game(game_file, news_file, player_dict, report_id)
     score(player_dict)
-    outputScores(player_dict, False, 'points', True) # simple plaintext scores in point order
-    outputScores(player_dict, True, 'points', True) # html scores in point order
-    outputScores(player_dict, True, 'college', False) # html scores in college order
-    outputScores(player_dict, True, 'name', False) # html scores in name order
-    outputScores(player_dict, True, 'kills', True) # simple plaintext scores in kills order
+    output_scores(player_dict, False, 'points', True) 
+    output_scores(player_dict, True, 'points', True)
+    output_scores(player_dict, True, 'college', False)
+    output_scores(player_dict, True, 'name', False)
+    output_scores(player_dict, True, 'kills', True)
 
