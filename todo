@@ -4,5 +4,4 @@
 - Develop a main game AU: targetting graph
 - Allow graceful player-removal/casual player marking
 - player resurrection time checking
-- code cleanup!
-- configurable details to config file
+- alive/dead player name colouring/real name inclusion in html. Should probably be handled by player class.

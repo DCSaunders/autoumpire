@@ -29,7 +29,6 @@ def initialise_game(player_dict, player_file, news_file):
                             row[Field.college], row[Field.address],
                             row[Field.water], row[Field.notes], 
                             row[Field.email], news_file)
-            # Assign player dictionary, indexing by attribute defined in main
             player_dict[player.name] = player
 
 
@@ -116,7 +115,7 @@ def html_scores(player_list, score_file):
         for player in player_list:
             point_str = (player.name, player.pseudonym,
                       player.address, player.college,
-                      player.waterStatus, player.notes,
+                      player.water_status, player.notes,
                       str(player.kills), str(player.deaths),
                       '%.2f' % player.points)
             points ="{}{}".format(entry_e, entry_s).join(point_str)
@@ -140,16 +139,15 @@ def output_scores(p, html, k, desc):
         plaintext_scores(player_list, file_name)
 
 def get_date(original_date):
-    original_format = '%d.%m.%y'
-    date_struct = time.strptime(original_date, original_format)
+    date_struct = get_input_date_struct(original_date)
     new_format = '%A, %d %B'
     converted_date = time.strftime(new_format, date_struct)
     date_str = '\n<h3 xmlns="">{}</h3>\n'.format(converted_date)
     return date_str
     
-def run_game(game_file, news_file, player_dict, report_id):
+def run_game(game_file, news_file, player_dict, report_id, start_date):
     name_set = set(player_dict.keys())
-    date = None
+    date = start_date
     with open(game_file, 'r') as f:
         for line in f:
             lexer = game_reader.Lexer(line, name_set)
@@ -179,16 +177,29 @@ def run_game(game_file, news_file, player_dict, report_id):
             if event_time:
                 all_events = ', '.join(event_strings)
                 report_id = new_report(news_file, all_events, event_players, report_id, event_time)
-        
+
+def get_input_date_struct(date):
+    input_format = '%d.%m.%y'
+    return time.strptime(date, input_format)
+                
+def get_first_report_id(start_date):
+    date_struct = get_input_date_struct(start_date)
+    term = ('l', 'e', 'm')[(date_struct.tm_mon - 1) / 4]
+    year = str(date_struct.tm_year)[-2:]
+    return ''.join((term, year, '000'))
+                   
 # Set up filenames, run game
 if __name__ == '__main__':
-    news_file = "news.txt" # Text file the news will be written to.
-    game_file = "game.txt" # text file for game input
-    report_id = "e17000" # Anchor for first entry in news file
-    player_file = "MWAUexampleplayers.csv"
+    cfg = ConfigParser.ConfigParser()
+    cfg.read('game_config.cfg')
+    news_file = cfg.get('MWAU', 'news_file') 
+    game_file = cfg.get('MWAU', 'game_file')
+    player_file = cfg.get('MWAU', 'player_file')
+    start_date = cfg.get('MWAU', 'start_date')
+    report_id = get_first_report_id(start_date)
     player_dict = dict() 
     initialise_game(player_dict, player_file, news_file)
-    run_game(game_file, news_file, player_dict, report_id)
+    run_game(game_file, news_file, player_dict, report_id, start_date)
     score(player_dict)
     output_scores(player_dict, False, 'points', True) 
     output_scores(player_dict, True, 'points', True)
