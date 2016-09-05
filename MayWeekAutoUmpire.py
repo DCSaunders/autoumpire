@@ -28,7 +28,7 @@ def initialise_game(player_dict, player_file, news_file):
             player = Player(row[Field.name], row[Field.pseud],
                             row[Field.college], row[Field.address],
                             row[Field.water], row[Field.notes], 
-                            row[Field.email], news_file)
+                            row[Field.email])
             player_dict[player.name] = player
 
 
@@ -138,12 +138,19 @@ def output_scores(p, html, k, desc):
     else:
         plaintext_scores(player_list, file_name)
 
-def get_date(original_date):
-    date_struct = get_input_date_struct(original_date)
+def get_report_date(original_date):
+    date_struct = get_datetime(original_date)
     new_format = '%A, %d %B'
     converted_date = time.strftime(new_format, date_struct)
     date_str = '\n<h3 xmlns="">{}</h3>\n'.format(converted_date)
     return date_str
+
+def get_datetime(date, event_time=None):
+    date_format = '%d.%m.%y'
+    if event_time:
+        date = ' '.join((date, event_time))
+        date_format = ' '.join((date_format, '%H:%M'))
+    return time.strptime(date, date_format)
     
 def run_game(game_file, news_file, player_dict, report_id, start_date):
     name_set = set(player_dict.keys())
@@ -157,7 +164,7 @@ def run_game(game_file, news_file, player_dict, report_id, start_date):
             event_time = events.pop(game_reader.TIME, None)
             if game_reader.DATE in events:
                 date = events.pop(game_reader.DATE, None)
-                date_str = get_date(date)
+                date_str = get_report_date(date)
                 new_report(news_file, None, None, None, None, date=date_str)
             event_strings = []
             event_players = set()
@@ -166,7 +173,8 @@ def run_game(game_file, news_file, player_dict, report_id, start_date):
                 event_players = event_players.union(token_players)
                 if token.type == game_reader.KILLS:
                     killer = token_players[0]
-                    killer.killed(token_players[1:], event_time)
+                    death_time = get_datetime(date, event_time=event_time)
+                    killer.killed(token_players[1:], death_time)
                     event_strings.append(kill_str(token_players))
                 elif token.type == game_reader.BONUS:
                     for player_name in events[token]:
@@ -177,13 +185,9 @@ def run_game(game_file, news_file, player_dict, report_id, start_date):
             if event_time:
                 all_events = ', '.join(event_strings)
                 report_id = new_report(news_file, all_events, event_players, report_id, event_time)
-
-def get_input_date_struct(date):
-    input_format = '%d.%m.%y'
-    return time.strptime(date, input_format)
-                
+   
 def get_first_report_id(start_date):
-    date_struct = get_input_date_struct(start_date)
+    date_struct = get_datetime(start_date)
     term = ('l', 'e', 'm')[(date_struct.tm_mon - 1) / 4]
     year = str(date_struct.tm_year)[-2:]
     return ''.join((term, year, '000'))

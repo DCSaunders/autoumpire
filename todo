@@ -3,5 +3,4 @@
 - Develop a main game AU: automatic emailing
 - Develop a main game AU: targetting graph
 - Allow graceful player-removal/casual player marking
-- player resurrection time checking
-- alive/dead player name colouring/real name inclusion in html. Should probably be handled by player class.
+- Player representing based on time since last death (alive, dead, corpse-stabbed)
