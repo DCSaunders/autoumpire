@@ -58,11 +58,11 @@ def report_string(players, event_str, ID, event_time):
               report_str)
     return "".join(report)
 
-def kill_str(players):
+def kill_str(players, date_time):
     killer = players[0]
-    otherPlayers = players[1:]
-    killed_str =  " and ".join(["{} ({})".format(otherPlayer.pseudonym, otherPlayer.name) for otherPlayer in otherPlayers])
-    return "{} ({}) kills {}".format(killer.pseudonym, killer.name, killed_str)
+    other_players = players[1:]
+    killed_str =  " and ".join(['{}'.format(other_player.represent_player(date_time)) for other_player in other_players])
+    return "{} kills {}".format(killer.represent_player(date_time), killed_str)
 
 def bonus_str(players):
     bonus_players = ["{}".format(player.pseudonym) for player in players]
@@ -175,7 +175,7 @@ def run_game(game_file, news_file, player_dict, report_id, start_date):
                     killer = token_players[0]
                     death_time = get_datetime(date, event_time=event_time)
                     killer.killed(token_players[1:], death_time)
-                    event_strings.append(kill_str(token_players))
+                    event_strings.append(kill_str(token_players, death_time))
                 elif token.type == game_reader.BONUS:
                     for player_name in events[token]:
                         player_dict[player_name].bonus(token.value)

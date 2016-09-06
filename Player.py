@@ -3,6 +3,8 @@
 import collections
 import time
 
+RESURRECT_TIME = 4 * 3600
+
 class Player(object):
     # Player class for MayWeekAutoUmpire project written by Danielle Saunders (ds636)
 
@@ -22,10 +24,29 @@ class Player(object):
     def is_alive(self, death_time):
         alive = True
         if self.last_death_time:
-            delta = time.mktime(death_time) - time.mktime(self.last_death_time)
-            alive = delta > 3600
+            alive = self.time_since_death(death_time) >= RESURRECT_TIME
         return alive
-        
+
+    def time_since_death(self, death_time):
+        death_time_seconds = time.mktime(death_time)
+        last_death_time_seconds = time.mktime(self.last_death_time)
+        return death_time_seconds - last_death_time_seconds
+
+    def represent_player(self, time):
+        if self.last_death_time:
+            dead_time = self.time_since_death(time)
+            if dead_time >= RESURRECT_TIME:
+                represent = self.pseudonym
+            else:
+                represent = '%s (%s)' % (self.pseudonym, self.name)
+                if dead_time > 0:
+                    represent = ' '.join(['the corpse of', represent])
+        else:
+            represent = self.pseudonym
+        return represent
+                    
+
+    
     # Add bonus points
     def bonus(self, points):
         self.bonus_points += points
