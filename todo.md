@@ -3,3 +3,4 @@
 - Develop a main game AU: automatic emailing
 - Develop a main game AU: targetting graph
 - Allow graceful player-removal/casual player marking
+- Check html score tables in website. May need to do more careful ordering of e.g players with the same score but different kill/death-ratios

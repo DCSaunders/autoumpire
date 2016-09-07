@@ -131,8 +131,8 @@ def html_scores(player_list, score_file):
 # desc: false if ascending, true if descending.
 def output_scores(p, html, k, desc):
     player_list = sorted(p.values(), key=operator.attrgetter(k), reverse = desc)
-    output_format = "html" if html else "plaintext"
-    file_name = "scores-{}-{}.txt".format(k, output_format)
+    output_format = "html" if html else "txt"
+    file_name = "scores-{}.{}".format(k, output_format)
     if (html):
         html_scores(player_list, file_name)
     else:
