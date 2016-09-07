@@ -1,16 +1,18 @@
 #!/usr/bin/env python
-
+# Player class for MayWeekAutoUmpire project written by Danielle Saunders
 import collections
 import time
 
 RESURRECT_TIME = 4 * 3600
+DEAD_COLOUR = '<span class="colourdead1">'
+END_SPAN = '</span>'
+LIVE_COLOUR = '<span class="colourliveplayer6">'
+
 
 class Player(object):
-    # Player class for MayWeekAutoUmpire project written by Danielle Saunders (ds636)
-
     # Notes that another player has killed you.
     def died(self, killer, time):
-        self.killedByList[killer] += 1
+        self.killed_by_list[killer] += 1
         self.deaths += 1
         self.last_death_time = time
 
@@ -36,9 +38,10 @@ class Player(object):
         if self.last_death_time:
             dead_time = self.time_since_death(time)
             if dead_time >= RESURRECT_TIME:
-                represent = self.pseudonym
+                represent = ''.join((LIVE_COLOUR, self.pseudonym, END_SPAN))
             else:
                 represent = '%s (%s)' % (self.pseudonym, self.name)
+                represent = ''.join((DEAD_COLOUR, represent, END_SPAN))
                 if dead_time > 0:
                     represent = ' '.join(['the corpse of', represent])
         else:
@@ -62,13 +65,13 @@ class Player(object):
     # THIS MAY BE CHANGED AT UMPIRE'S DISCRETION.
     def calcPoints(self):
         from math import exp
-        for i in self.killedList:
+        for i in self.killed_list:
             # Go through each player this player has killed
-            for j in range(1, self.killedList[i] + 1):
+            for j in range(1, self.killed_list[i] + 1):
                 # Go through each kill of that player and sum scores.
                 self.points = self.points + j * exp(1 - j)
-        for i in self.killedByList:
-            for j in range(1, self.killedByList[i] + 1):
+        for i in self.killed_by_list:
+            for j in range(1, self.killed_by_list[i] + 1):
                 # Go through each death and sum scores.
                 self.points = self.points - 0.5 * j * exp(1 - j)
         self.points = 10 * self.points # NB points scaled BEFORE bonus added! 
@@ -79,7 +82,7 @@ class Player(object):
     def killed(self, other_players, time):
         for other_player in other_players:
             if other_player.is_alive(time):
-                self.killedList[other_player] += 1
+                self.killed_list[other_player] += 1
                 self.kills += 1
                 other_player.died(self, time)
             else:
@@ -97,7 +100,7 @@ class Player(object):
         self.deaths = 0
         self.bonus_points = 0
         self.points = 0
-        self.killedList = collections.defaultdict(int)
-        self.killedByList = collections.defaultdict(int)
+        self.killed_list = collections.defaultdict(int)
+        self.killed_by_list = collections.defaultdict(int)
         self.last_death_time = None
       

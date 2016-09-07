@@ -43,7 +43,7 @@ def report_string(players, event_str, ID, event_time):
     nl = "\n"
     event_s = "<div xmlns="" class=\"event\">"
     hr = "<hr/>"
-    id_s = "<span id={}>[{}]".format(ID, event_time)
+    id_s = "<span id={}>[{}] ".format(ID, event_time)
     head_s = "<span class=\"headline\">"
     report_s = "<div class=\"report\">"
     indent_s = "<div class=\"indent\">"
@@ -66,11 +66,11 @@ def kill_str(players, date_time):
 
 def bonus_str(players):
     bonus_players = ["{}".format(player.pseudonym) for player in players]
-    return "bonus points to {}".format(', '.join(bonus_players)) 
+    return "Bonus points to {}".format(', '.join(bonus_players)) 
 
 def event_str(players):
     event_players = ["{}".format(player.pseudonym) for player in players]
-    return "an event happens involving {}".format(', '.join(event_players))
+    return "An event happens involving {}".format(', '.join(event_players))
 
     
 # Create a template for a new report.
@@ -183,7 +183,7 @@ def run_game(game_file, news_file, player_dict, report_id, start_date):
                 elif token.type == game_reader.EVENT:
                     event_strings.append(event_str(token_players))
             if event_time:
-                all_events = ', '.join(event_strings)
+                all_events = '. '.join(event_strings)
                 report_id = new_report(news_file, all_events, event_players, report_id, event_time)
    
 def get_first_report_id(start_date):
