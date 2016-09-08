@@ -34,21 +34,15 @@ class Player(object):
         last_death_time_seconds = time.mktime(self.last_death_time)
         return death_time_seconds - last_death_time_seconds
 
-    def represent_player(self, time):
-        if self.last_death_time:
-            dead_time = self.time_since_death(time)
-            if dead_time >= RESURRECT_TIME:
-                represent = ''.join((LIVE_COLOUR, self.pseudonym, END_SPAN))
-            else:
-                represent = '%s (%s)' % (self.pseudonym, self.name)
-                represent = ''.join((DEAD_COLOUR, represent, END_SPAN))
-                if dead_time > 0:
-                    represent = ' '.join(['the corpse of', represent])
+    def represent_player(self, death_time):
+        if not self.last_death_time or self.is_alive(death_time):
+            represent = ''.join((LIVE_COLOUR, self.pseudonym, END_SPAN))
         else:
-            represent = self.pseudonym
+            represent = '%s (%s)' % (self.pseudonym, self.name)
+            represent = ''.join((DEAD_COLOUR, represent, END_SPAN))
+            if death_time != self.last_death_time:
+                represent = ' '.join(['the corpse of', represent])
         return represent
-                    
-
     
     # Add bonus points
     def bonus(self, points):

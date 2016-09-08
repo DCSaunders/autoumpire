@@ -40,37 +40,30 @@ def score(p):
 
 # Build HTML string for report template
 def report_string(players, event_str, ID, event_time):
-    nl = "\n"
-    event_s = "<div xmlns="" class=\"event\">"
-    hr = "<hr/>"
-    id_s = "<span id={}>[{}] ".format(ID, event_time)
-    head_s = "<span class=\"headline\">"
-    report_s = "<div class=\"report\">"
-    indent_s = "<div class=\"indent\">"
-    p_s = "<p>"
-    p_e = "</p>"
-    div_e = "</div>"
-    span_e = "</span>"
-    report_str = "".join(["{}{}{}{} reports: {}{}{}{}{}".format(report_s, indent_s, p_s, player.pseudonym, nl, p_e, div_e, div_e, div_e) for player in players])
-    report = ("{}{}{}{}{}{}".format(nl, nl, event_s, hr, id_s, head_s),
-              event_str,
-              "{}{}{}{}".format(span_e, span_e, span_e, hr),
-              report_str)
-    return "".join(report)
+    event_div = "\n\n<div xmlns="" class=\"event\"><hr/>{}</div>"
+    id_str = "<span id={}>[{}] {} </span>"
+    headline = "<span class=\"headline\">{}</span>"
+    indent = "<div class=\"indent\">{}</div>"
+    report = "<div class=\"report\">{}</div>".format(indent)
+    report_para = "<p>{} reports:\n</p>"   
+    report_str = "".join([report.format(report_para.format(player.pseudonym))
+                          for player in players])
+    event = (event_div.format(id_str.format(ID, event_time, headline.format(event_str))))
+    return event + report_str
 
 def kill_str(players, date_time):
     killer = players[0]
     other_players = players[1:]
     killed_str =  " and ".join(['{}'.format(other_player.represent_player(date_time)) for other_player in other_players])
-    return "{} kills {}".format(killer.represent_player(date_time), killed_str)
+    return "{} kills {}.".format(killer.represent_player(date_time), killed_str)
 
 def bonus_str(players):
     bonus_players = ["{}".format(player.pseudonym) for player in players]
-    return "Bonus points to {}".format(', '.join(bonus_players)) 
+    return "Bonus points to {}.".format(', '.join(bonus_players)) 
 
 def event_str(players):
     event_players = ["{}".format(player.pseudonym) for player in players]
-    return "An event happens involving {}".format(', '.join(event_players))
+    return "An event happens involving {}.".format(', '.join(event_players))
 
     
 # Create a template for a new report.
@@ -102,26 +95,23 @@ def plaintext_scores(player_list, score_file):
 # p: sorted player dictionary.
 # score_file: file for output.
 def html_scores(player_list, score_file):
-    t_s = "<table>"
-    t_e = "</table>"
-    row_s = "<tr>"
-    row_e = "</tr>"
-    entry_s = "<td>"
-    entry_e = "</td>"
-    nl = "\n"
+    table_start = "<table>"
+    table_end = "</table>"
+    row = "<tr>{}</tr>"
+    entry = "<td>{}</td>"x
     with open(score_file, 'w') as f:
         # Write scores in table
-        f.write(t_s)
+        f.write(table_start)
         for player in player_list:
             point_str = (player.name, player.pseudonym,
                       player.address, player.college,
                       player.water_status, player.notes,
                       str(player.kills), str(player.deaths),
                       '%.2f' % player.points)
-            points ="{}{}".format(entry_e, entry_s).join(point_str)
-            out = '%s%s%s%s%s%s' % (row_s, entry_s, points, entry_e, row_e, nl)
-            f.write(out)
-        f.write(t_e)
+            point_entry = entry.format(point_str)
+            player_row = '{}\n'.format(row.format(entry.format(point_entry)))
+            f.write(player_row)
+        f.write(table_end)
 
 
 # Output scores in HTML table or plaintext
@@ -183,7 +173,7 @@ def run_game(game_file, news_file, player_dict, report_id, start_date):
                 elif token.type == game_reader.EVENT:
                     event_strings.append(event_str(token_players))
             if event_time:
-                all_events = '. '.join(event_strings)
+                all_events = ' '.join(event_strings)
                 report_id = new_report(news_file, all_events, event_players, report_id, event_time)
    
 def get_first_report_id(start_date):
