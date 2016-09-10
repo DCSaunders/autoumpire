@@ -18,7 +18,8 @@ class Field(object):
     email = 'Email'
 
 # Reads player details from given csv
-def read_player_details(player_dict, player_file):
+def read_player_details(player_file):
+    player_dict = dict()
     with open(player_file, 'rb') as f:
         reader = csv.DictReader(f)            
         for row in reader:
@@ -27,6 +28,7 @@ def read_player_details(player_dict, player_file):
                             row[Field.water], row[Field.notes], 
                             row[Field.email])
             player_dict[player.name] = player
+    return player_dict
 
 # Score the playerlist
 # p: player dictionary
@@ -34,27 +36,35 @@ def score(p):
     for player in p.itervalues():
         player.calcPoints()
 
-def kill_str(players, date_time):
+
+def kill_event(players, event_strings, date, kill_time):
     killer = players[0]
-    other_players = players[1:]
-    killed_str =  " and ".join(['{}'.format(other_player.represent_player(date_time)) for other_player in other_players])
-    return "{} kills {}.".format(killer.represent_player(date_time), killed_str)
+    dead = players[1:]
+    death_time = get_datetime(date, event_time=kill_time)
+    killer.killed(dead, death_time)
+    dead_str = ' and '.join([player.represent(death_time) for player in dead])
+    event_str = '{} kills {}.'.format(killer.represent(death_time), dead_str)
+    event_strings.append(event_str)
 
-def bonus_str(players):
-    bonus_players = ["{}".format(p.pseudonym) for p in players]
-    return "Bonus points to {}.".format(', '.join(bonus_players)) 
+    
+def bonus_event(players, points, event_strings):
+    for player in players:
+        player.bonus(points)
+    bonus_str = ', '.join([player.pseudonym for player in players])
+    event_strings.append('{} bonus points to {}.'.format(points, bonus_str)) 
 
+    
 def event_str(players):
-    event_players = ["{}".format(p.pseudonym) for p in players]
+    event_players = [player.pseudonym for player in players]
     return "An event happens involving {}.".format(', '.join(event_players))
 
 
 def get_report_date(original_date):
     date_struct = get_datetime(original_date)
     new_format = '%A, %d %B'
-    converted_date = time.strftime(new_format, date_struct)
-    date_str = '\n<h3 xmlns="">{}</h3>\n'.format(converted_date)
-    return date_str
+    new_date = time.strftime(new_format, date_struct)
+    return new_date
+
 
 def get_datetime(date, event_time=None):
     date_format = '%d.%m.%y'
@@ -62,7 +72,8 @@ def get_datetime(date, event_time=None):
         date = ' '.join((date, event_time))
         date_format = ' '.join((date_format, '%H:%M'))
     return time.strptime(date, date_format)
-    
+
+
 def run_game(game_file, player_dict, reporter, start_date):
     name_set = set(player_dict.keys())
     date = start_date
@@ -76,33 +87,29 @@ def run_game(game_file, player_dict, reporter, start_date):
             if game_reader.DATE in events:
                 date = events.pop(game_reader.DATE, None)
                 date_str = get_report_date(date)
-                reporter.new_report(None, None, None, date=date_str)
+                reporter.new_date(date_str)
             event_strings = []
             event_players = set()
             for token in events:
                 token_players = [player_dict[name] for name in events[token]]
                 event_players = event_players.union(token_players)
                 if token.type == game_reader.KILLS:
-                    killer = token_players[0]
-                    death_time = get_datetime(date, event_time=event_time)
-                    killer.killed(token_players[1:], death_time)
-                    event_strings.append(kill_str(token_players, death_time))
+                    kill_event(token_players, event_strings, date, event_time)
                 elif token.type == game_reader.BONUS:
-                    for player_name in events[token]:
-                        player_dict[player_name].bonus(token.value)
-                    event_strings.append(bonus_str(token_players))
+                    bonus_event(token_players, token.value, event_strings)
                 elif token.type == game_reader.EVENT:
                     event_strings.append(event_str(token_players))
             if event_time:
-                all_events = ' '.join(event_strings)
-                reporter.new_report(all_events, event_players, event_time)
-   
+                reporter.new_report(event_strings, event_players, event_time)
+
+                
 def get_first_report_id(start_date):
     date_struct = get_datetime(start_date)
     term = ('l', 'e', 'm')[(date_struct.tm_mon - 1) / 4]
     year = str(date_struct.tm_year)[-2:]
     return ''.join((term, year, '000'))
-                   
+
+
 # Set up filenames, run game
 if __name__ == '__main__':
     cfg = ConfigParser.ConfigParser()
@@ -112,14 +119,13 @@ if __name__ == '__main__':
     player_file = cfg.get('MWAU', 'player_file')
     start_date = cfg.get('MWAU', 'start_date')
     report_id = get_first_report_id(start_date)
-    player_dict = dict() 
-    read_player_details(player_dict, player_file)
+    player_dict = read_player_details(player_file)
     reporter = Reporter(news_file, player_dict, report_id)
     run_game(game_file, player_dict, reporter, start_date)
     score(player_dict)
-    reporter.output_scores(False, 'points', True) 
-    reporter.output_scores(True, 'points', True)
-    reporter.output_scores(True, 'college', False)
-    reporter.output_scores(True, 'name', False)
-    reporter.output_scores(True, 'kills', True)
+    reporter.output_scores(html=False, key='points', desc=True) 
+    reporter.output_scores(html=True, key='points', desc=True)
+    reporter.output_scores(html=True, key='college', desc=False)
+    reporter.output_scores(html=True, key='name', desc=False)
+    reporter.output_scores(html=True, key='kills', desc=True)
 

@@ -34,7 +34,7 @@ class Player(object):
         last_death_time_seconds = time.mktime(self.last_death_time)
         return death_time_seconds - last_death_time_seconds
 
-    def represent_player(self, death_time):
+    def represent(self, death_time):
         if not self.last_death_time or self.is_alive(death_time):
             represent = ''.join((LIVE_COLOUR, self.pseudonym, END_SPAN))
         else:

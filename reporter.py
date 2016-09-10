@@ -19,24 +19,27 @@ class Reporter(object):
         indent = "<div class=\"indent\">{}</div>"
         report = "<div class=\"report\">{}</div>".format(indent)
         report_para = "<p>{} reports:\n</p>"   
-        report_str = "".join([report.format(report_para.format(player.pseudonym))
-                              for player in players])
-        event = (event_div.format(id_str.format(self.report_id, event_time, headline.format(event_str))))
-        return event + report_str
-
+        report_list =  [report.format(report_para.format(player.pseudonym))
+                        for player in players]
+        event = event_div.format(id_str.format(self.report_id, event_time, headline.format(event_str)))
+        return event + ''.join(report_list)
 
     # Create a template for a new report.
-    def new_report(self, event_str, players, event_time, date=None):
-        if not date:
-            rep = self.report_string(players, event_str, event_time)
-            report_num = str(int(self.report_id[1:]) + 1).zfill(len(self.report_id) - 1)
-            self.report_id = self.report_id[0] + report_num
-        else:
-            rep = date
+    def new_report(self, event_strings, players, event_time):
+        event_str = ' '.join(event_strings)
+        pad_len = len(self.report_id) - 1
+        report = self.report_string(players, event_str, event_time)
+        report_num = int(self.report_id[1:]) + 1
+        report_numstr = str(report_num).zfill(pad_len)
+        self.report_id = self.report_id[0] + report_numstr
         with open(self.news_file, 'a') as f:
-            f.write(rep)
+            f.write(report)
 
-
+    def new_date(self, date_str):
+        date_str = '\n<h3 xmlns="">{}</h3>\n'.format(date_str)
+        with open(self.news_file, 'a') as f:
+            f.write(date_str)
+            
     # Output plaintext scores
     # p: sorted player dictionary
     # scoreFile: file to output plaintext scores
@@ -74,15 +77,14 @@ class Reporter(object):
 
 
     # Output scores in HTML table or plaintext
-    # p: player dictionary.
-    # k: key to sort on.
     # html: false if plaintext output, true if html table
+    # k: key to sort on.
     # desc: false if ascending, true if descending.
-    def output_scores(self, html, k, desc):
+    def output_scores(self, html, key, desc):
         ordered_players = sorted(self.players.values(),
-                                 key=operator.attrgetter(k), reverse = desc)
+                                 key=operator.attrgetter(key), reverse = desc)
         output_format = "html" if html else "txt"
-        file_name = "scores-{}.{}".format(k, output_format)
+        file_name = "scores-{}.{}".format(key, output_format)
         if (html):
             self.html_scores(ordered_players, file_name)
         else:
