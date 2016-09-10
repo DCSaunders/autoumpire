@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import ConfigParser
 import csv
-import operator
 import os.path
 import time
-from Player import Player
+from reporter import Reporter
+from player import Player
 import game_reader
 
 # If changing playerlist column headers, be sure to edit these strings.
@@ -17,11 +17,8 @@ class Field(object):
     notes = 'Notes'
     email = 'Email'
 
-# Initialises playerlist and newsfile
-# player_dict: dictionary mapping string player name to player object
-# playerFile: csv file containing playerlist.
-def initialise_game(player_dict, player_file, news_file):
-    open(news_file, 'w').close()
+# Reads player details from given csv
+def read_player_details(player_dict, player_file):
     with open(player_file, 'rb') as f:
         reader = csv.DictReader(f)            
         for row in reader:
@@ -31,25 +28,11 @@ def initialise_game(player_dict, player_file, news_file):
                             row[Field.email])
             player_dict[player.name] = player
 
-
 # Score the playerlist
 # p: player dictionary
 def score(p):
     for player in p.itervalues():
         player.calcPoints()
-
-# Build HTML string for report template
-def report_string(players, event_str, ID, event_time):
-    event_div = "\n\n<div xmlns="" class=\"event\"><hr/>{}</div>"
-    id_str = "<span id={}>[{}] {} </span>"
-    headline = "<span class=\"headline\">{}</span>"
-    indent = "<div class=\"indent\">{}</div>"
-    report = "<div class=\"report\">{}</div>".format(indent)
-    report_para = "<p>{} reports:\n</p>"   
-    report_str = "".join([report.format(report_para.format(player.pseudonym))
-                          for player in players])
-    event = (event_div.format(id_str.format(ID, event_time, headline.format(event_str))))
-    return event + report_str
 
 def kill_str(players, date_time):
     killer = players[0]
@@ -58,75 +41,13 @@ def kill_str(players, date_time):
     return "{} kills {}.".format(killer.represent_player(date_time), killed_str)
 
 def bonus_str(players):
-    bonus_players = ["{}".format(player.pseudonym) for player in players]
+    bonus_players = ["{}".format(p.pseudonym) for p in players]
     return "Bonus points to {}.".format(', '.join(bonus_players)) 
 
 def event_str(players):
-    event_players = ["{}".format(player.pseudonym) for player in players]
+    event_players = ["{}".format(p.pseudonym) for p in players]
     return "An event happens involving {}.".format(', '.join(event_players))
 
-    
-# Create a template for a new report.
-def new_report(news, event_str, players, report_id, event_time, date=None):
-    if not date:
-        rep = report_string(players, event_str, report_id, event_time)
-        report_num = str(int(report_id[1:]) + 1).zfill(len(report_id) - 1)
-        report_id = report_id[0] + report_num
-    else:
-        rep = date
-    with open(news, 'a') as f:
-        f.write(rep)
-    if report_id:
-        return report_id
-
-            
-# Output plaintext scores
-# p: sorted player dictionary
-# scoreFile: file to output plaintext scores
-def plaintext_scores(player_list, score_file):
-    with open(score_file, 'w') as f:
-        for player in player_list:
-            point_str = ' '.join((player.name, str(player.points), "\n"))
-            print point_str
-            f.write(point_str)
-
-
-# Output scores in HTML table
-# p: sorted player dictionary.
-# score_file: file for output.
-def html_scores(player_list, score_file):
-    table_start = "<table>"
-    table_end = "</table>"
-    row = "<tr>{}</tr>"
-    entry = "<td>{}</td>"x
-    with open(score_file, 'w') as f:
-        # Write scores in table
-        f.write(table_start)
-        for player in player_list:
-            point_str = (player.name, player.pseudonym,
-                      player.address, player.college,
-                      player.water_status, player.notes,
-                      str(player.kills), str(player.deaths),
-                      '%.2f' % player.points)
-            point_entry = entry.format(point_str)
-            player_row = '{}\n'.format(row.format(entry.format(point_entry)))
-            f.write(player_row)
-        f.write(table_end)
-
-
-# Output scores in HTML table or plaintext
-# p: player dictionary.
-# k: key to sort on.
-# html: false if plaintext output, true if html table
-# desc: false if ascending, true if descending.
-def output_scores(p, html, k, desc):
-    player_list = sorted(p.values(), key=operator.attrgetter(k), reverse = desc)
-    output_format = "html" if html else "txt"
-    file_name = "scores-{}.{}".format(k, output_format)
-    if (html):
-        html_scores(player_list, file_name)
-    else:
-        plaintext_scores(player_list, file_name)
 
 def get_report_date(original_date):
     date_struct = get_datetime(original_date)
@@ -142,7 +63,7 @@ def get_datetime(date, event_time=None):
         date_format = ' '.join((date_format, '%H:%M'))
     return time.strptime(date, date_format)
     
-def run_game(game_file, news_file, player_dict, report_id, start_date):
+def run_game(game_file, player_dict, reporter, start_date):
     name_set = set(player_dict.keys())
     date = start_date
     with open(game_file, 'r') as f:
@@ -155,7 +76,7 @@ def run_game(game_file, news_file, player_dict, report_id, start_date):
             if game_reader.DATE in events:
                 date = events.pop(game_reader.DATE, None)
                 date_str = get_report_date(date)
-                new_report(news_file, None, None, None, None, date=date_str)
+                reporter.new_report(None, None, None, date=date_str)
             event_strings = []
             event_players = set()
             for token in events:
@@ -174,7 +95,7 @@ def run_game(game_file, news_file, player_dict, report_id, start_date):
                     event_strings.append(event_str(token_players))
             if event_time:
                 all_events = ' '.join(event_strings)
-                report_id = new_report(news_file, all_events, event_players, report_id, event_time)
+                reporter.new_report(all_events, event_players, event_time)
    
 def get_first_report_id(start_date):
     date_struct = get_datetime(start_date)
@@ -192,12 +113,13 @@ if __name__ == '__main__':
     start_date = cfg.get('MWAU', 'start_date')
     report_id = get_first_report_id(start_date)
     player_dict = dict() 
-    initialise_game(player_dict, player_file, news_file)
-    run_game(game_file, news_file, player_dict, report_id, start_date)
+    read_player_details(player_dict, player_file)
+    reporter = Reporter(news_file, player_dict, report_id)
+    run_game(game_file, player_dict, reporter, start_date)
     score(player_dict)
-    output_scores(player_dict, False, 'points', True) 
-    output_scores(player_dict, True, 'points', True)
-    output_scores(player_dict, True, 'college', False)
-    output_scores(player_dict, True, 'name', False)
-    output_scores(player_dict, True, 'kills', True)
+    reporter.output_scores(False, 'points', True) 
+    reporter.output_scores(True, 'points', True)
+    reporter.output_scores(True, 'college', False)
+    reporter.output_scores(True, 'name', False)
+    reporter.output_scores(True, 'kills', True)
 
