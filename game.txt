@@ -1,7 +1,7 @@
 DATE=10.08.16
-"Player1" KILLS "Player2" ALSO "Player2" KILLS "Player3" ALSO "Player1" BONUS=4 TIME=11:05
-"Player1" KILLS "Player2" TIME=12:05
-"Player3" BONUS=17 # I am a comment and should not be read
-# I am another comment
+"Player1" KILLS "Player2" ALSO "Player1" BONUS=4 TIME=11:05
+"Player4" KILLS "Player2" ALSO "Player2" KILLS "Player4" TIME=15:05
+"Player3" BONUS=-2 # I am a comment and should not be read
+
 DATE=11.08.16
 "Player2" KILLS "Player3" "Player1" ALSO EVENT "Player1" TIME=13:10 

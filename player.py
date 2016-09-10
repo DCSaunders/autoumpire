@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # Player class for MayWeekAutoUmpire project written by Danielle Saunders
+from __future__ import division
+
 import collections
 import time
 
@@ -43,6 +45,14 @@ class Player(object):
             if death_time != self.last_death_time:
                 represent = ' '.join(['the corpse of', represent])
         return represent
+
+    # A rough approximation to kill-death-ratio for score ordering
+    def kill_death_ratio(self):
+        if self.deaths == 0:
+            ratio = self.kills
+        else:
+            ratio = self.kills / self.deaths
+        return ratio
     
     # Add bonus points
     def bonus(self, points):
@@ -71,7 +81,6 @@ class Player(object):
         self.points = 10 * self.points # NB points scaled BEFORE bonus added! 
         self.points += self.bonus_points
 
-
     # Sets that killed another player, sets a report
     def killed(self, other_players, time):
         for other_player in other_players:
@@ -93,7 +102,7 @@ class Player(object):
         self.kills = 0
         self.deaths = 0
         self.bonus_points = 0
-        self.points = 0
+        self.points = 0.0
         self.killed_list = collections.defaultdict(int)
         self.killed_by_list = collections.defaultdict(int)
         self.last_death_time = None

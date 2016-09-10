@@ -52,7 +52,7 @@ class Reporter(object):
 
 
     # Output scores in HTML table
-    # p: sorted player dictionary.
+    # player_list: sorted player dictionary.
     # score_file: file for output.
     def html_scores(self, player_list, score_file):
         table_start = '<table xmlns="" class="playerlist">'
@@ -81,7 +81,8 @@ class Reporter(object):
     # k: key to sort on.
     # desc: false if ascending, true if descending.
     def output_scores(self, html, key, desc):
-        ordered_players = sorted(self.players.values(),
+        first_ordered = sorted(self.players.values(), key=lambda x: x.kill_death_ratio(), reverse = desc)
+        ordered_players = sorted(first_ordered,
                                  key=operator.attrgetter(key), reverse = desc)
         output_format = "html" if html else "txt"
         file_name = "scores-{}.{}".format(key, output_format)

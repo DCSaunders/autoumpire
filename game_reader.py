@@ -67,10 +67,10 @@ class Lexer(object):
     def get_bonus(self):
         self.advance()
         bonus = ''
-        while self.current_char.isdigit():
+        while self.current_char.isdigit() or self.current_char in ('-', '.'):
             bonus += self.current_char
             self.advance()
-        return int(bonus)
+        return float(bonus)
 
     def eat(self, keyword):
         eaten = False
