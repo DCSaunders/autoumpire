@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 
-AND, EVENT, NAME, NAME_MARKER, COMMENT_MARKER, KILLS, BONUS, TIME, TIME_FORMAT, DATE, DATE_FORMAT = 'AND', 'EVENT', 'NAME', '"', '#', 'KILLS', 'BONUS', 'TIME', 'hh:mm', 'DATE', 'dd.mm.yy' 
+ALSO, EVENT, NAME, NAME_MARKER, COMMENT_MARKER, KILLS, BONUS, TIME, TIME_FORMAT, DATE, DATE_FORMAT = 'ALSO', 'EVENT', 'NAME', '"', '#', 'KILLS', 'BONUS', 'TIME', 'hh:mm', 'DATE', 'dd.mm.yy' 
 
 class Token(object):
     def __init__(self, type, value):
@@ -85,8 +85,8 @@ class Lexer(object):
                 return Token(KILLS, KILLS)
             elif self.eat(EVENT):
                 return Token(EVENT, EVENT)
-            elif self.eat(AND):
-                return Token(AND, AND)
+            elif self.eat(ALSO):
+                return Token(ALSO, ALSO)
             elif self.eat(BONUS):
                 return Token(BONUS, self.get_bonus())
             elif self.eat(TIME):
@@ -127,7 +127,7 @@ class Interpreter(object):
         self.players = []
 
     def error(self):
-        raise Exception('Invalid syntax')
+        raise Exception('Invalid syntax after {}'.format(self.current_token))
         
     def eat(self, token_type):
         if self.current_token.type == token_type:
@@ -142,7 +142,7 @@ class Interpreter(object):
                     
     def event(self):
         while self.current_token is not None:
-            if self.current_token.type in (NAME, KILLS, EVENT, BONUS, AND):
+            if self.current_token.type in (NAME, KILLS, EVENT, BONUS, ALSO):
                 token = self.current_token
                 if token.type == NAME:
                     self.players = [token.value]
@@ -151,9 +151,11 @@ class Interpreter(object):
                     self.eat(token.type)
                     self.event_players()
                     self.event_dict[token] = self.players
-                elif token.type == AND:
-                    self.eat(AND)
+                elif token.type == ALSO:
+                    self.eat(ALSO)
                     self.players = []
             elif self.current_token.type in (TIME, DATE):
                 self.event_dict[self.current_token.type] = self.current_token.value
                 self.eat(self.current_token.type)
+            else:
+                self.error()
