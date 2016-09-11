@@ -32,9 +32,9 @@ def read_player_details(player_file):
 
 # Score the playerlist
 # p: player dictionary
-def score(p):
-    for player in p.itervalues():
-        player.calcPoints()
+def score(player_dict):
+    for player in player_dict.values():
+        player.calc_points()
 
 
 def kill_event(players, event_strings, date, kill_time):
@@ -59,7 +59,8 @@ def event_str(players):
     return "An event happens involving {}.".format(', '.join(event_players))
 
 
-def get_report_date(original_date):
+def get_report_date(events):
+    original_date = events.pop(game_reader.DATE, None)
     date_struct = get_datetime(original_date)
     new_format = '%A, %d %B'
     new_date = time.strftime(new_format, date_struct)
@@ -85,9 +86,7 @@ def run_game(game_file, player_dict, reporter, start_date):
             events = interpreter.event_dict
             event_time = events.pop(game_reader.TIME, None)
             if game_reader.DATE in events:
-                date = events.pop(game_reader.DATE, None)
-                date_str = get_report_date(date)
-                reporter.new_date(date_str)
+                reporter.new_date(get_report_date(events))
             event_strings = []
             event_players = set()
             for token in events:

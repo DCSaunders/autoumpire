@@ -28,7 +28,7 @@ class Lexer(object):
         self.current_char = self.text[self.index]
     
     def skipWhitespace(self):
-        while self.current_char is not None and self.current_char.isspace():
+        while self.current_char and self.current_char.isspace():
             self.advance()
         
     def advance(self, steps=1):
@@ -97,11 +97,11 @@ class Lexer(object):
 
     def error(self):
         error_char = self.current_char
-        error_str = 'Error with character %s on line %s' % (error_char, self.text)
-        sys.exit(error_str)
+        msg = 'Error with character %s on line %s' % (error_char, self.text)
+        sys.exit(msg)
         
     def get_next_token(self):
-        while self.current_char is not None:
+        while self.current_char:
             if self.current_char == COMMENT_MARKER:
                 break
             
@@ -136,26 +136,25 @@ class Interpreter(object):
             self.error()
 
     def event_players(self):
-        while self.current_token is not None and self.current_token.type == NAME:
+        while self.current_token and self.current_token.type == NAME:
             self.players.append(self.current_token.value)
             self.eat(NAME)
                     
     def event(self):
-        while self.current_token is not None:
-            if self.current_token.type in (NAME, KILLS, EVENT, BONUS, ALSO):
-                token = self.current_token
-                if token.type == NAME:
-                    self.players = [token.value]
-                    self.eat(NAME)
-                elif token.type in (KILLS, EVENT, BONUS):
-                    self.eat(token.type)
-                    self.event_players()
-                    self.event_dict[token] = self.players
-                elif token.type == ALSO:
-                    self.eat(ALSO)
-                    self.players = []
-            elif self.current_token.type in (TIME, DATE):
-                self.event_dict[self.current_token.type] = self.current_token.value
-                self.eat(self.current_token.type)
+        while self.current_token:
+            token = self.current_token
+            if token.type == NAME:
+                self.players = [token.value]
+                self.eat(NAME)
+            elif token.type in (KILLS, EVENT, BONUS):
+                self.eat(token.type)
+                self.event_players()
+                self.event_dict[token] = self.players
+            elif token.type == ALSO:
+                self.eat(ALSO)
+                self.players = []
+            elif token.type in (TIME, DATE):
+                self.event_dict[token.type] = token.value
+                self.eat(token.type)
             else:
                 self.error()

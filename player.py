@@ -67,15 +67,15 @@ class Player(object):
     # Current score is an exponentially decaying function of how many times
     # a player has killed each other player.
     # THIS MAY BE CHANGED AT UMPIRE'S DISCRETION.
-    def calcPoints(self):
+    def calc_points(self):
         from math import exp
-        for i in self.killed_list:
+        for kill_count in self.killed_list.values():
             # Go through each player this player has killed
-            for j in range(1, self.killed_list[i] + 1):
+            for j in range(1, kill_count + 1):
                 # Go through each kill of that player and sum scores.
                 self.points = self.points + j * exp(1 - j)
-        for i in self.killed_by_list:
-            for j in range(1, self.killed_by_list[i] + 1):
+        for death_count in self.killed_by_list.values():
+            for j in range(1, death_count + 1):
                 # Go through each death and sum scores.
                 self.points = self.points - 0.5 * j * exp(1 - j)
         self.points = 10 * self.points # NB points scaled BEFORE bonus added! 

@@ -6,7 +6,9 @@ class Reporter(object):
     def __init__(self, news_file, player_dict, report_id):
         self.HEADERS = ['Name', 'Pseudonym', 'Address', 'College', 'Water status', 'Notes', 'Kills', 'Deaths', 'Points']
         self.news_file = news_file
-        self.players = player_dict
+        self.players = sorted(player_dict.values(),
+                              key=lambda x: x.kill_death_ratio(),
+                              reverse = True)
         self.report_id = report_id
         open(self.news_file, 'w').close()
 
@@ -81,8 +83,7 @@ class Reporter(object):
     # k: key to sort on.
     # desc: false if ascending, true if descending.
     def output_scores(self, html, key, desc):
-        first_ordered = sorted(self.players.values(), key=lambda x: x.kill_death_ratio(), reverse = desc)
-        ordered_players = sorted(first_ordered,
+        ordered_players = sorted(self.players,
                                  key=operator.attrgetter(key), reverse = desc)
         output_format = "html" if html else "txt"
         file_name = "scores-{}.{}".format(key, output_format)
