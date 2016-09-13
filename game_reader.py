@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 
-ALSO, EVENT, NAME, NAME_MARKER, COMMENT_MARKER, KILLS, BONUS, TIME, TIME_FORMAT, DATE, DATE_FORMAT = 'ALSO', 'EVENT', 'NAME', '"', '#', 'KILLS', 'BONUS', 'TIME', 'hh:mm', 'DATE', 'dd.mm.yy' 
+ALSO, REMOVE, CASUAL, EVENT, NAME, NAME_MARKER, COMMENT_MARKER, KILLS, BONUS, TIME, TIME_FORMAT, DATE, DATE_FORMAT = 'ALSO', 'REMOVE', 'CASUAL', 'EVENT', 'NAME', '"', '#', 'KILLS', 'BONUS', 'TIME', 'hh:mm', 'DATE', 'dd.mm.yy' 
 
 class Token(object):
     def __init__(self, type, value):
@@ -11,10 +11,7 @@ class Token(object):
     def __str__(self):
         """String representation of the class instance.
         """
-        return 'Token({type}, {value})'.format(
-            type=self.type,
-            value=repr(self.value)
-        )
+        return 'Token({}, {})'.format(self.type, repr(self.value))
 
     def __repr__(self):
         return self.__str__()
@@ -85,6 +82,10 @@ class Lexer(object):
                 return Token(KILLS, KILLS)
             elif self.eat(EVENT):
                 return Token(EVENT, EVENT)
+            elif self.eat(REMOVE):
+                return Token(REMOVE, REMOVE)
+            elif self.eat(CASUAL):
+                return Token(CASUAL, CASUAL)
             elif self.eat(ALSO):
                 return Token(ALSO, ALSO)
             elif self.eat(BONUS):
@@ -146,7 +147,7 @@ class Interpreter(object):
             if token.type == NAME:
                 self.players = [token.value]
                 self.eat(NAME)
-            elif token.type in (KILLS, EVENT, BONUS):
+            elif token.type in (KILLS, EVENT, BONUS, REMOVE, CASUAL):
                 self.eat(token.type)
                 self.event_players()
                 self.event_dict[token] = self.players

@@ -21,9 +21,13 @@ class Player(object):
     def invalid_death(self, killer_name, attempt_time):
         new_format = '%d.%m.%y %H:%M'
         attempt_time = time.strftime(new_format, attempt_time)    
-        last_death = time.strftime(new_format, self.last_death_time)
-        output_tuple = (killer_name, self.name, attempt_time, last_death)
-        print '%s cannot kill %s at %s: previous death at %s' % output_tuple
+        if self.in_game:
+            last_death = time.strftime(new_format, self.last_death_time)
+            output_tuple = (killer_name, self.name, attempt_time, last_death)
+            print '%s cannot kill %s at %s: previous death at %s' % output_tuple
+        else:
+            output_tuple = (self.name, attempt_time, killer_name)
+            print '%s is no longer playing at %s - %s cannot kill them' % output_tuple
   
     def is_alive(self, death_time):
         alive = True
@@ -37,7 +41,9 @@ class Player(object):
         return death_time_seconds - last_death_time_seconds
 
     def represent(self, death_time):
-        if not self.last_death_time or self.is_alive(death_time):
+        if not self.in_game:
+            represent = '%s, who is no longer playing' % self.name
+        elif not self.last_death_time or self.is_alive(death_time):
             represent = ''.join((LIVE_COLOUR, self.pseudonym, END_SPAN))
         else:
             represent = '%s (%s)' % (self.pseudonym, self.name)
@@ -84,12 +90,18 @@ class Player(object):
     # Sets that killed another player, sets a report
     def killed(self, other_players, time):
         for other_player in other_players:
-            if other_player.is_alive(time):
+            if other_player.is_alive(time) and other_player.in_game:
                 self.killed_list[other_player] += 1
                 self.kills += 1
                 other_player.died(self, time)
             else:
                 other_player.invalid_death(self.name, time)
+
+    def remove_from_game(self):
+        self.in_game = False
+    
+    def make_casual(self):
+        self.casual = True
         
     def __init__(self, name, pseud, college, address, water, notes, email):
         self.name = name
@@ -103,6 +115,8 @@ class Player(object):
         self.deaths = 0
         self.bonus_points = 0
         self.points = 0.0
+        self.in_game = True
+        self.casual = False
         self.killed_list = collections.defaultdict(int)
         self.killed_by_list = collections.defaultdict(int)
         self.last_death_time = None

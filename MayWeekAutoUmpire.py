@@ -58,9 +58,19 @@ def event_str(players):
     event_players = [player.pseudonym for player in players]
     return "An event happens involving {}.".format(', '.join(event_players))
 
+def remove_str(players):
+    for player in players:
+        player.remove_from_game()
+    event_players = [player.pseudonym for player in players]
+    return "{} removed from the game.".format(', '.join(event_players))
 
-def get_report_date(events):
-    original_date = events.pop(game_reader.DATE, None)
+def casual_str(players):
+    for player in players:
+        player.make_casual()
+    event_players = [player.pseudonym for player in players]
+    return "{} now playing casually.".format(', '.join(event_players))
+
+def get_report_date(original_date):
     date_struct = get_datetime(original_date)
     new_format = '%A, %d %B'
     new_date = time.strftime(new_format, date_struct)
@@ -86,7 +96,8 @@ def run_game(game_file, player_dict, reporter, start_date):
             events = interpreter.event_dict
             event_time = events.pop(game_reader.TIME, None)
             if game_reader.DATE in events:
-                reporter.new_date(get_report_date(events))
+                date = events.pop(game_reader.DATE, None)
+                reporter.new_date(get_report_date(date))
             event_strings = []
             event_players = set()
             for token in events:
@@ -98,6 +109,10 @@ def run_game(game_file, player_dict, reporter, start_date):
                     bonus_event(token_players, token.value, event_strings)
                 elif token.type == game_reader.EVENT:
                     event_strings.append(event_str(token_players))
+                elif token.type == game_reader.REMOVE:
+                    event_strings.append(remove_str(token_players))
+                elif token.type == game_reader.CASUAL:
+                    event_strings.append(casual_str(token_players))
             if event_time:
                 reporter.new_report(event_strings, event_players, event_time)
 

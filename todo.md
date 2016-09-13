@@ -2,4 +2,3 @@
 - Develop a main game AU: police players
 - Develop a main game AU: automatic emailing
 - Develop a main game AU: targetting graph
-- Allow graceful player-removal/casual player marking

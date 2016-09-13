@@ -5,10 +5,8 @@ class Reporter(object):
 
     def __init__(self, news_file, player_dict, report_id):
         self.HEADERS = ['Name', 'Pseudonym', 'Address', 'College', 'Water status', 'Notes', 'Kills', 'Deaths', 'Points']
+        self.player_dict = player_dict
         self.news_file = news_file
-        self.players = sorted(player_dict.values(),
-                              key=lambda x: x.kill_death_ratio(),
-                              reverse = True)
         self.report_id = report_id
         open(self.news_file, 'w').close()
 
@@ -68,11 +66,14 @@ class Reporter(object):
             headers = ''.join([header.format(info) for info in self.HEADERS])
             f.write(row.format(headers))
             for player in player_list:
-                player_info = (player.name, player.pseudonym,
+                player_info = [player.name, player.pseudonym,
                                player.address, player.college,
                                player.water_status, player.notes,
                                str(player.kills), str(player.deaths),
-                               '%.2f' % player.points)
+                               '%.2f' % player.points]
+                if player.casual:
+                    for index, info in enumerate(player_info):
+                        player_info[index] = '<i>{}</i>'.format(info)
                 cells = ''.join([cell.format(info) for info in player_info])
                 f.write(row.format(cells))
             f.write(table_end)
@@ -83,12 +84,23 @@ class Reporter(object):
     # k: key to sort on.
     # desc: false if ascending, true if descending.
     def output_scores(self, html, key, desc):
-        ordered_players = sorted(self.players,
+        casual_players = []
+        players = self.player_dict.values()
+        for index, player in enumerate(players):
+            if not player.in_game:
+                players.pop(index)
+            elif player.casual:
+                casual_players.append(players.pop(index))
+        players = sorted(players,
+                         key=lambda x: x.kill_death_ratio(),
+                         reverse = True)
+        ordered_players = sorted(players,
                                  key=operator.attrgetter(key), reverse = desc)
+        all_players = ordered_players + casual_players
         output_format = "html" if html else "txt"
         file_name = "scores-{}.{}".format(key, output_format)
         if (html):
-            self.html_scores(ordered_players, file_name)
+            self.html_scores(all_players, file_name)
         else:
-            self.plaintext_scores(ordered_players, file_name)
+            self.plaintext_scores(all_players, file_name)
 

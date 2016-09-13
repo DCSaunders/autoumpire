@@ -1,7 +1,9 @@
 DATE=10.08.16
+CASUAL "Player1"
 "Player1" KILLS "Player2" ALSO "Player1" BONUS=4 TIME=11:05
 "Player4" KILLS "Player2" ALSO "Player2" KILLS "Player4" TIME=15:05
 "Player3" BONUS=-2 # I am a comment and should not be read
 
 DATE=11.08.16
-"Player2" KILLS "Player3" "Player1" ALSO EVENT "Player1" TIME=13:10 
+REMOVE "Player1"
+"Player2" KILLS "Player3" "Player1" ALSO EVENT "Player1" TIME=11:10 
