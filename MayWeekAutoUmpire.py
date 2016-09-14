@@ -31,45 +31,11 @@ def read_player_details(player_file):
     return player_dict
 
 # Score the playerlist
-# p: player dictionary
 def score(player_dict):
     for player in player_dict.values():
         player.calc_points()
 
-
-def kill_event(players, event_strings, date, kill_time):
-    killer = players[0]
-    dead = players[1:]
-    death_time = get_datetime(date, event_time=kill_time)
-    killer.killed(dead, death_time)
-    dead_str = ' and '.join([player.represent(death_time) for player in dead])
-    event_str = '{} kills {}.'.format(killer.represent(death_time), dead_str)
-    event_strings.append(event_str)
-
     
-def bonus_event(players, points, event_strings):
-    for player in players:
-        player.bonus(points)
-    bonus_str = ', '.join([player.pseudonym for player in players])
-    event_strings.append('{} bonus points to {}.'.format(points, bonus_str)) 
-
-    
-def event_str(players):
-    event_players = [player.pseudonym for player in players]
-    return "An event happens involving {}.".format(', '.join(event_players))
-
-def remove_str(players):
-    for player in players:
-        player.remove_from_game()
-    event_players = [player.pseudonym for player in players]
-    return "{} removed from the game.".format(', '.join(event_players))
-
-def casual_str(players):
-    for player in players:
-        player.make_casual()
-    event_players = [player.pseudonym for player in players]
-    return "{} now playing casually.".format(', '.join(event_players))
-
 def get_report_date(original_date):
     date_struct = get_datetime(original_date)
     new_format = '%A, %d %B'
@@ -84,39 +50,72 @@ def get_datetime(date, event_time=None):
         date_format = ' '.join((date_format, '%H:%M'))
     return time.strptime(date, date_format)
 
+class GameRunner(object):
+    def __init__(self, game_file, start_date, player_dict, reporter):
+        self.date = start_date
+        self.game_file = game_file
+        self.players = []
+        self.name_set = set(player_dict.keys())
+        with open(game_file, 'r') as f:
+            for line in f:
+                self.run_game(line, player_dict, reporter)
+    
+    def run_game(self, line, player_dict, reporter):
+        lexer = game_reader.Lexer(line, self.name_set)
+        interpreter = game_reader.Interpreter(lexer)
+        interpreter.event()
+        events = interpreter.event_dict
+        event_time = events.pop(game_reader.TIME, None)
+        if game_reader.DATE in events:
+            self.date = events.pop(game_reader.DATE, None)
+            reporter.new_date(get_report_date(self.date))
+        summaries, event_players = [], set()
+        for token in events:
+            self.players = [player_dict[name] for name in events[token]]
+            event_players = event_players.union(self.players)
+            if token.type == game_reader.KILLS:
+                summaries.append(self.kill_event(event_time))
+            elif token.type == game_reader.BONUS:
+                summaries.append(self.bonus_event(token.value))
+            elif token.type == game_reader.PLAYER_OP:
+                method_name = token.value.lower() + '_str'
+                summary_method = getattr(self, method_name)
+                summaries.append(summary_method())
+        if event_time:
+            reporter.new_report(summaries, event_players, event_time)
+                    
+    def event_str(self):
+        event_players = [player.pseudonym for player in self.players]
+        return "An event happens involving {}.".format(', '.join(event_players))
 
-def run_game(game_file, player_dict, reporter, start_date):
-    name_set = set(player_dict.keys())
-    date = start_date
-    with open(game_file, 'r') as f:
-        for line in f:
-            lexer = game_reader.Lexer(line, name_set)
-            interpreter = game_reader.Interpreter(lexer)
-            interpreter.event()
-            events = interpreter.event_dict
-            event_time = events.pop(game_reader.TIME, None)
-            if game_reader.DATE in events:
-                date = events.pop(game_reader.DATE, None)
-                reporter.new_date(get_report_date(date))
-            event_strings = []
-            event_players = set()
-            for token in events:
-                token_players = [player_dict[name] for name in events[token]]
-                event_players = event_players.union(token_players)
-                if token.type == game_reader.KILLS:
-                    kill_event(token_players, event_strings, date, event_time)
-                elif token.type == game_reader.BONUS:
-                    bonus_event(token_players, token.value, event_strings)
-                elif token.type == game_reader.EVENT:
-                    event_strings.append(event_str(token_players))
-                elif token.type == game_reader.REMOVE:
-                    event_strings.append(remove_str(token_players))
-                elif token.type == game_reader.CASUAL:
-                    event_strings.append(casual_str(token_players))
-            if event_time:
-                reporter.new_report(event_strings, event_players, event_time)
+    def remove_str(self):
+        for player in self.players:
+            player.remove_from_game()
+        event_players = [player.pseudonym for player in self.players]
+        return "{} removed from the game.".format(', '.join(event_players))
 
-                
+    def casual_str(self):
+        for player in self.players:
+            player.make_casual()
+        event_players = [player.pseudonym for player in self.players]
+        return "{} now playing casually.".format(', '.join(event_players))
+
+    def kill_event(self, kill_time):
+        killer = self.players[0]
+        dead_players = self.players[1:]
+        kill_time = get_datetime(self.date, event_time=kill_time)
+        killer.killed(dead_players, kill_time)
+        dead_list = [player.represent(kill_time) for player in dead_players]
+        dead_str = ' and '.join(dead_list)
+        return '{} kills {}.'.format(killer.represent(kill_time), dead_str)
+
+    def bonus_event(self, points):
+        for player in self.players:
+            player.bonus(points)
+        bonus_str = ', '.join([player.pseudonym for player in self.players])
+        return '{} bonus points to {}.'.format(points, bonus_str)
+
+    
 def get_first_report_id(start_date):
     date_struct = get_datetime(start_date)
     term = ('l', 'e', 'm')[(date_struct.tm_mon - 1) / 4]
@@ -135,7 +134,7 @@ if __name__ == '__main__':
     report_id = get_first_report_id(start_date)
     player_dict = read_player_details(player_file)
     reporter = Reporter(news_file, player_dict, report_id)
-    run_game(game_file, player_dict, reporter, start_date)
+    GameRunner(game_file, start_date, player_dict, reporter)
     score(player_dict)
     reporter.output_scores(html=False, key='points', desc=True) 
     reporter.output_scores(html=True, key='points', desc=True)

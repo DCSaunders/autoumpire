@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 
-ALSO, REMOVE, CASUAL, EVENT, NAME, NAME_MARKER, COMMENT_MARKER, KILLS, BONUS, TIME, TIME_FORMAT, DATE, DATE_FORMAT = 'ALSO', 'REMOVE', 'CASUAL', 'EVENT', 'NAME', '"', '#', 'KILLS', 'BONUS', 'TIME', 'hh:mm', 'DATE', 'dd.mm.yy' 
+PLAYER_OP, ALSO, REMOVE, CASUAL, EVENT, NAME, NAME_MARKER, COMMENT_MARKER, KILLS, BONUS, TIME, TIME_FORMAT, DATE, DATE_FORMAT = 'PLAYER_OP', 'ALSO', 'REMOVE', 'CASUAL', 'EVENT', 'NAME', '"', '#', 'KILLS', 'BONUS', 'TIME', 'hh:mm', 'DATE', 'dd.mm.yy' 
 
 class Token(object):
     def __init__(self, type, value):
@@ -80,16 +80,16 @@ class Lexer(object):
         while self.current_char.isalpha():
             if self.eat(KILLS):
                 return Token(KILLS, KILLS)
-            elif self.eat(EVENT):
-                return Token(EVENT, EVENT)
-            elif self.eat(REMOVE):
-                return Token(REMOVE, REMOVE)
-            elif self.eat(CASUAL):
-                return Token(CASUAL, CASUAL)
-            elif self.eat(ALSO):
-                return Token(ALSO, ALSO)
             elif self.eat(BONUS):
                 return Token(BONUS, self.get_bonus())
+            elif self.eat(EVENT):
+                return Token(PLAYER_OP, EVENT)
+            elif self.eat(REMOVE):
+                return Token(PLAYER_OP, REMOVE)
+            elif self.eat(CASUAL):
+                return Token(PLAYER_OP, CASUAL)
+            elif self.eat(ALSO):
+                return Token(ALSO, ALSO)
             elif self.eat(TIME):
                 return Token(TIME, self.get_time())
             elif self.eat(DATE):
@@ -147,7 +147,7 @@ class Interpreter(object):
             if token.type == NAME:
                 self.players = [token.value]
                 self.eat(NAME)
-            elif token.type in (KILLS, EVENT, BONUS, REMOVE, CASUAL):
+            elif token.type in (PLAYER_OP, BONUS, KILLS):
                 self.eat(token.type)
                 self.event_players()
                 self.event_dict[token] = self.players
