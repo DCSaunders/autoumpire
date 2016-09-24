@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-import operator
 
+import codecs
+import operator
 class Reporter(object):
 
     def __init__(self, news_file, player_dict, report_id):
@@ -32,7 +33,7 @@ class Reporter(object):
         report_num = int(self.report_id[1:]) + 1
         report_numstr = str(report_num).zfill(pad_len)
         self.report_id = self.report_id[0] + report_numstr
-        with open(self.news_file, 'a') as f:
+        with codecs.open(self.news_file, 'a', encoding='utf-8') as f:
             f.write(report)
 
     def new_date(self, date_str):
@@ -44,7 +45,7 @@ class Reporter(object):
     # p: sorted player dictionary
     # scoreFile: file to output plaintext scores
     def plaintext_scores(self, player_list, score_file):
-        with open(score_file, 'w') as f:
+        with codecs.open(score_file, 'w', encoding='utf-8') as f:
             for player in player_list:
                 point_str = ' '.join((player.name, str(player.points), "\n"))
                 print point_str
@@ -60,7 +61,7 @@ class Reporter(object):
         row = "<tr>{}</tr>\n"
         header = "<th>{}</th>" 
         cell = "<td>{}</td>"
-        with open(score_file, 'w') as f:
+        with codecs.open(score_file, 'w', encoding='utf-8') as f:
             # Write scores in table
             f.write(table_start)
             headers = ''.join([header.format(info) for info in self.HEADERS])

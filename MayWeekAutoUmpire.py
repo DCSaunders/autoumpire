@@ -1,8 +1,14 @@
 #!/usr/bin/env python
+import codecs 
 import ConfigParser
 import csv
 import os.path
 import time
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
+
 from reporter import Reporter
 from player import Player
 import game_reader
