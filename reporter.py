@@ -67,7 +67,8 @@ class Reporter(object):
             headers = ''.join([header.format(info) for info in self.HEADERS])
             f.write(row.format(headers))
             for player in player_list:
-                player_info = [player.name, player.pseudonym,
+                pseuds = ' AKA '.join(player.pseud_list)
+                player_info = [player.name, pseuds,
                                player.address, player.college,
                                player.water_status, player.notes,
                                str(player.kills), str(player.deaths),

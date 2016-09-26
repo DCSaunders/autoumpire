@@ -105,7 +105,8 @@ class Player(object):
         
     def __init__(self, name, pseud, college, address, water, notes, email):
         self.name = name
-        self.pseudonym = pseud
+        self.pseud_list = [pseud.strip('"').strip() for pseud in pseud.split(' / ')] 
+        self.pseudonym = self.pseud_list[0].strip()
         self.college = college
         self.address = address
         self.water_status = water
