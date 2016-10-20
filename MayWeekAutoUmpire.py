@@ -10,7 +10,7 @@ sys.setdefaultencoding('utf-8')
 
 
 from reporter import Reporter
-from player import Player
+from player import MayWeekPlayer
 import game_reader
 
 # If changing playerlist column headers, be sure to edit these strings.
@@ -29,7 +29,7 @@ def read_player_details(player_file):
     with open(player_file, 'rb') as f:
         reader = csv.DictReader(f)            
         for row in reader:
-            player = Player(row[Field.name], row[Field.pseud],
+            player = MayWeekPlayer(row[Field.name], row[Field.pseud],
                             row[Field.college], row[Field.address],
                             row[Field.water], row[Field.notes], 
                             row[Field.email])
