@@ -17,6 +17,18 @@ class Player(object):
         self.deaths += 1
         self.last_death_time = time
 
+    def represent(self, death_time):
+        if not self.in_game:
+            represent = '%s, who is no longer playing' % self.name
+        elif not self.last_death_time or self.is_alive(death_time):
+            represent = ''.join((LIVE_COLOUR, self.pseudonym, END_SPAN))
+        else:
+            represent = '%s (%s)' % (self.pseudonym, self.name)
+            represent = ''.join((DEAD_COLOUR, represent, END_SPAN))
+            if death_time != self.last_death_time:
+                represent = ' '.join(['the corpse of', represent])
+        return represent
+    
     def invalid_death(self, killer_name, attempt_time):
         new_format = '%d.%m.%y %H:%M'
         attempt_time = time.strftime(new_format, attempt_time)    
@@ -29,27 +41,12 @@ class Player(object):
             print '%s is no longer playing at %s - %s cannot kill them' % output_tuple
   
     def is_alive(self, death_time):
-        alive = True
-        if self.last_death_time:
-            alive = self.time_since_death(death_time) >= RESURRECT_TIME
-        return alive
+        pass
 
     def time_since_death(self, death_time):
         death_time_seconds = time.mktime(death_time)
         last_death_time_seconds = time.mktime(self.last_death_time)
         return death_time_seconds - last_death_time_seconds
-
-    def represent(self, death_time):
-        if not self.in_game:
-            represent = '%s, who is no longer playing' % self.name
-        elif not self.last_death_time or self.is_alive(death_time):
-            represent = ''.join((LIVE_COLOUR, self.pseudonym, END_SPAN))
-        else:
-            represent = '%s (%s)' % (self.pseudonym, self.name)
-            represent = ''.join((DEAD_COLOUR, represent, END_SPAN))
-            if death_time != self.last_death_time:
-                represent = ' '.join(['the corpse of', represent])
-        return represent
 
     # A rough approximation to kill-death-ratio for score ordering
     def kill_death_ratio(self):
@@ -102,6 +99,12 @@ class MayWeekPlayer(Player):
     def bonus(self, points):
         self.bonus_points += points
 
+    def is_alive(self, death_time):
+        alive = True
+        if self.last_death_time:
+            alive = self.time_since_death(death_time) >= RESURRECT_TIME
+        return alive
+        
     # Calculate total points. Equations provided have been used since MW14 game.
     # NB: The main ideas of the scoring system are to:
     # 1) Ensure killing is more profitable than dying is unprofitable
@@ -124,3 +127,17 @@ class MayWeekPlayer(Player):
                 self.points = self.points - 0.5 * j * exp(1 - j)
         self.points = 10 * self.points # NB points scaled BEFORE bonus added! 
         self.points += self.bonus_points
+
+class MainPlayer(Player):
+    def __init__(self, name, pseud, college, address, water, notes, email):
+        super(MainPlayer, self).__init__(name, pseud, college, address, water, notes, email)
+        self.targets = []
+        self.competence = None
+    
+    def is_alive(self, death_time):
+        alive = True
+        if self.last_death_time:
+            alive = False
+        else:
+            self.last_death_time = death_time
+        return alive
