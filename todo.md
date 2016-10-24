@@ -1,4 +1,9 @@
-- Develop a main game AU: competence
-- Develop a main game AU: police players
-- Develop a main game AU: automatic emailing
-- Develop a main game AU: targetting graph
+- There should be some way of ensuring no emails are sent. Might be best if crsid/pwd not in config file, but have to be entered on each run. 
+- Targetting graph. Main game player needs a target list. Look into how to build an acyclic graph out of them.
+- Separate out game-runner and game-reader classes for main game, MW and generic AUs. 
+- Add competence field and ability to update competence. Should include new colour for representation!
+- Add wanted field and ability to make people wanted. Should include new colour for representation and should override the inco field.
+- Police players - need ranks. Need resurrection, probably as an explicit event. Need ability to become corrupt. Could probably subclass main game player with different representation function, and ability to be resurrected.
+- Should be able to be a police player from the start (new field in CSV?) or be made police at a given point.
+- Generate inco, wanted, police and corrupt/dead corrupt police lists.
+- Could have some kind of alert for potential illicit kills (shouldn't automatically make wanted, could be case of bearing etc.)
