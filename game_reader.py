@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 
-PLAYER_OP, ALSO, REMOVE, CASUAL, EVENT, NAME, NAME_MARKER, COMMENT_MARKER, KILLS, BONUS, TIME, TIME_FORMAT, DATE, DATE_FORMAT = 'PLAYER_OP', 'ALSO', 'REMOVE', 'CASUAL', 'EVENT', 'NAME', '"', '#', 'KILLS', 'BONUS', 'TIME', 'hh:mm', 'DATE', 'dd.mm.yy' 
+PLAYER_OP, ALSO, REMOVE, CASUAL, WANTED, ATTEMPT, ACCOMP, EVENT, NAME, NAME_MARKER, COMMENT_MARKER, KILLS, BONUS, TIME, TIME_FORMAT, DATE, DATE_FORMAT = 'PLAYER_OP', 'ALSO', 'REMOVE', 'CASUAL',  'WANTED', 'ATTEMPT', 'ACCOMP', 'EVENT', 'NAME', '"', '#', 'KILLS', 'BONUS', 'TIME', 'hh:mm', 'DATE', 'dd.mm.yy' 
 
 class Token(object):
     def __init__(self, type, value):
@@ -24,7 +24,7 @@ class Lexer(object):
         self.index = 0
         self.current_char = self.text[self.index]
     
-    def skipWhitespace(self):
+    def skip_whitespace(self):
         while self.current_char and self.current_char.isspace():
             self.advance()
         
@@ -76,7 +76,7 @@ class Lexer(object):
             eaten = True
         return eaten
            
-    def readKeyword(self):
+    def read_keyword(self):
         while self.current_char.isalpha():
             if self.eat(KILLS):
                 return Token(KILLS, KILLS)
@@ -88,6 +88,12 @@ class Lexer(object):
                 return Token(PLAYER_OP, REMOVE)
             elif self.eat(CASUAL):
                 return Token(PLAYER_OP, CASUAL)
+            elif self.eat(WANTED):
+                return Token(PLAYER_OP, WANTED)
+            elif self.eat(ACCOMP):
+                return Token(PLAYER_OP, ACCOMP)
+            elif self.eat(ATTEMPT):
+                return Token(PLAYER_OP, ATTEMPT)
             elif self.eat(ALSO):
                 return Token(ALSO, ALSO)
             elif self.eat(TIME):
@@ -107,14 +113,14 @@ class Lexer(object):
                 break
             
             if self.current_char.isspace():
-                self.skipWhitespace()
+                self.skip_whitespace()
                 continue
             
             if self.current_char == NAME_MARKER:
                 return Token(NAME, self.get_player_name())
                 
             if self.current_char.isalpha():
-                return self.readKeyword()
+                return self.read_keyword()
 
             self.error()
 

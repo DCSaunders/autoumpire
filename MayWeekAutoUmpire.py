@@ -79,32 +79,31 @@ class GameRunner(object):
         for token in events:
             self.players = [player_dict[name] for name in events[token]]
             event_players = event_players.union(self.players)
+            summary_pseuds = ', '.join(
+                [player.pseudonym for player in self.players])
             if token.type == game_reader.KILLS:
                 summaries.append(self.kill_event(event_time))
             elif token.type == game_reader.BONUS:
-                summaries.append(self.bonus_event(token.value))
+                summaries.append(self.bonus_event(token.value, summary_pseuds))
             elif token.type == game_reader.PLAYER_OP:
                 method_name = token.value.lower() + '_str'
                 summary_method = getattr(self, method_name)
-                summaries.append(summary_method())
+                summaries.append(summary_method(summary_pseuds))
         if event_time:
             reporter.new_report(summaries, event_players, event_time)
                     
-    def event_str(self):
-        event_players = [player.pseudonym for player in self.players]
-        return "An event happens involving {}.".format(', '.join(event_players))
+    def event_str(self, summary_pseuds):
+        return "An event happens involving {}.".format(summary_pseuds)
 
-    def remove_str(self):
+    def remove_str(self, summary_pseuds):
         for player in self.players:
             player.remove_from_game()
-        event_players = [player.pseudonym for player in self.players]
-        return "{} removed from the game.".format(', '.join(event_players))
+        return "{} removed from the game.".format(summary_pseuds)
 
-    def casual_str(self):
+    def casual_str(self, summary_pseuds):
         for player in self.players:
             player.make_casual()
-        event_players = [player.pseudonym for player in self.players]
-        return "{} now playing casually.".format(', '.join(event_players))
+        return "{} now playing casually.".format(summary_pseuds)
 
     def kill_event(self, kill_time):
         killer = self.players[0]
@@ -115,11 +114,10 @@ class GameRunner(object):
         dead_str = ' and '.join(dead_list)
         return '{} kills {}.'.format(killer.represent(kill_time), dead_str)
 
-    def bonus_event(self, points):
+    def bonus_event(self, points, summary_pseuds):
         for player in self.players:
             player.bonus(points)
-        bonus_str = ', '.join([player.pseudonym for player in self.players])
-        return '{} bonus points to {}.'.format(points, bonus_str)
+        return '{} bonus points to {}.'.format(points, summary_pseuds)
 
     
 def get_first_report_id(start_date):
