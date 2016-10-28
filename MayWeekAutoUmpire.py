@@ -79,19 +79,22 @@ class GameRunner(object):
         for token in events:
             self.players = [player_dict[name] for name in events[token]]
             event_players = event_players.union(self.players)
-            summary_pseuds = ', '.join(
-                [player.pseudonym for player in self.players])
-            if token.type == game_reader.KILLS:
-                summaries.append(self.kill_event(event_time))
-            elif token.type == game_reader.BONUS:
-                summaries.append(self.bonus_event(token.value, summary_pseuds))
-            elif token.type == game_reader.PLAYER_OP:
-                method_name = token.value.lower() + '_str'
-                summary_method = getattr(self, method_name)
-                summaries.append(summary_method(summary_pseuds))
+            self.get_token_summary(token, summaries, event_time)
         if event_time:
             reporter.new_report(summaries, event_players, event_time)
-                    
+            
+    def get_token_summary(self, token, summaries, event_time):
+        summary_pseuds = ', '.join(
+            [player.pseudonym for player in self.players])
+        if token.type == game_reader.KILLS:
+            summaries.append(self.kill_event(event_time))
+        elif token.type == game_reader.BONUS:
+            summaries.append(self.bonus_event(token.value, summary_pseuds))
+        elif token.type == game_reader.PLAYER_OP:
+            method_name = token.value.lower() + '_str'
+            summary_method = getattr(self, method_name)
+            summaries.append(summary_method(summary_pseuds))
+        
     def event_str(self, summary_pseuds):
         return "An event happens involving {}.".format(summary_pseuds)
 
