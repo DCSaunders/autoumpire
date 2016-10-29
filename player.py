@@ -7,8 +7,10 @@ import time
 
 RESURRECT_TIME = 4 * 3600
 DEAD_COLOUR = '<span class="colourdead1">'
-END_SPAN = '</span>'
 LIVE_COLOUR = '<span class="colourliveplayer6">'
+WANTED_COLOUR = '<span class="colourwanted1">'
+INCO_COLOUR = '<span class="colourinco1">'
+END_SPAN = '</span>'
 
 class Player(object):
     # Notes that another player has killed you.
@@ -141,3 +143,23 @@ class MainPlayer(Player):
         else:
             self.last_death_time = death_time
         return alive
+
+
+    # Calculate conkers scores recursively, starting from last player standing - TODO
+    def calc_points(self):
+        return 0
+    
+class PolicePlayer(MainPlayer):
+    def __init__(self, name, pseud, college, address, water, notes, email, police_competence, rank):
+        super(PolicePlayer, self).__init__(name, pseud, college, address, water, notes, email)
+        self.competence = police_competence
+        self.rank = rank
+        self.alive = True
+        self.corrupt = False
+
+    def is_alive(self, death_time):
+        return self.alive
+
+    def resurrect(self, new_rank):
+        self.rank = new_rank
+        self.alive = True
