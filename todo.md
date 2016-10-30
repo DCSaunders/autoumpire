@@ -1,9 +1,11 @@
-- There should be some way of ensuring no emails are sent. Might be best if crsid/pwd not in config file, but have to be entered on each run. 
+- The date/time stuff really needs to be in a separate utils file. That would make separating out the game-runner stuff for MW and main games a lot easier.
+- Rename stuff to long/short/longgame/shortgame respectively - slightly more descriptive.
+- Once there are separate MW/main game runners, get main file to look at config to run short or long game respectively.
 - Targetting graph. Main game player needs a target list. Look into how to build an acyclic graph out of them.
 - Separate out game-runner and game-reader classes for main game, MW and generic AUs. 
 - Add competence field and ability to update competence. Should include new colour for representation!
 - Add wanted field and ability to make people wanted. Should include new colour for representation and should override the inco field.
-- Police players - need ranks. Need resurrection, probably as an explicit event. Need ability to become corrupt. Could probably subclass main game player with different representation function, and ability to be resurrected.
 - Should be able to be a police player from the start (new field in CSV?) or be made police at a given point.
 - Generate inco, wanted, police and corrupt/dead corrupt police lists.
 - Could have some kind of alert for potential illicit kills (shouldn't automatically make wanted, could be case of bearing etc.)
+- It might be worth making wantedness a thing in the short game, and just having it keep a bounty list. Would update templates automatically, which might be helpful.
