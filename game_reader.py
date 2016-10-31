@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import sys
-
-PLAYER_OP, ALSO, REMOVE, CASUAL, WANTED, ATTEMPT, ACCOMP, EVENT, NAME, NAME_MARKER, COMMENT_MARKER, KILLS, BONUS, TIME, TIME_FORMAT, DATE, DATE_FORMAT = 'PLAYER_OP', 'ALSO', 'REMOVE', 'CASUAL',  'WANTED', 'ATTEMPT', 'ACCOMP', 'EVENT', 'NAME', '"', '#', 'KILLS', 'BONUS', 'TIME', 'hh:mm', 'DATE', 'dd.mm.yy' 
+from constants import ALSO, BONUS, KILLS, NAME, NAME_MARKER, COMMENT_MARKER, TIME_FORMAT, TIME, DATE_FORMAT, DATE, PLAYER_OP, PLAYER_OP_LIST
 
 class Token(object):
     def __init__(self, type, value):
@@ -75,31 +74,29 @@ class Lexer(object):
             self.advance(len(keyword))
             eaten = True
         return eaten
-           
+
+    def eat_player_op(self):
+        for op in PLAYER_OP_LIST:
+            if self.eat(op):
+                return op
+        return ''
+    
     def read_keyword(self):
         while self.current_char.isalpha():
             if self.eat(KILLS):
                 return Token(KILLS, KILLS)
             elif self.eat(BONUS):
                 return Token(BONUS, self.get_bonus())
-            elif self.eat(EVENT):
-                return Token(PLAYER_OP, EVENT)
-            elif self.eat(REMOVE):
-                return Token(PLAYER_OP, REMOVE)
-            elif self.eat(CASUAL):
-                return Token(PLAYER_OP, CASUAL)
-            elif self.eat(WANTED):
-                return Token(PLAYER_OP, WANTED)
-            elif self.eat(ACCOMP):
-                return Token(PLAYER_OP, ACCOMP)
-            elif self.eat(ATTEMPT):
-                return Token(PLAYER_OP, ATTEMPT)
             elif self.eat(ALSO):
                 return Token(ALSO, ALSO)
             elif self.eat(TIME):
                 return Token(TIME, self.get_time())
             elif self.eat(DATE):
                 return Token(DATE, self.get_date())
+            else:
+                op = self.eat_player_op()
+                if op:
+                    return Token(PLAYER_OP, op)
         self.error()
 
     def error(self):

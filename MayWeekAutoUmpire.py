@@ -3,15 +3,13 @@ import codecs
 import ConfigParser
 import csv
 import os.path
-import time
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
-
-
 from reporter import Reporter
 from player import MayWeekPlayer
-import game_reader
+from game_runner import GameRunner
+import utils
 
 # If changing playerlist column headers, be sure to edit these strings.
 class Field(object):
@@ -40,95 +38,12 @@ def read_player_details(player_file):
 def score(player_dict):
     for player in player_dict.values():
         player.calc_points()
-
-    
-def get_report_date(original_date):
-    date_struct = get_datetime(original_date)
-    new_format = '%A, %d %B'
-    new_date = time.strftime(new_format, date_struct)
-    return new_date
-
-
-def get_datetime(date, event_time=None):
-    date_format = '%d.%m.%y'
-    if event_time:
-        date = ' '.join((date, event_time))
-        date_format = ' '.join((date_format, '%H:%M'))
-    return time.strptime(date, date_format)
-
-class GameRunner(object):
-    def __init__(self, game_file, start_date, player_dict, reporter):
-        self.date = start_date
-        self.game_file = game_file
-        self.players = []
-        self.name_set = set(player_dict.keys())
-        with open(game_file, 'r') as f:
-            for line in f:
-                self.run_game(line, player_dict, reporter)
-    
-    def run_game(self, line, player_dict, reporter):
-        lexer = game_reader.Lexer(line, self.name_set)
-        interpreter = game_reader.Interpreter(lexer)
-        interpreter.event()
-        events = interpreter.event_dict
-        event_time = events.pop(game_reader.TIME, None)
-        if game_reader.DATE in events:
-            self.date = events.pop(game_reader.DATE, None)
-            reporter.new_date(get_report_date(self.date))
-        summaries, event_players = [], set()
-        for token in events:
-            self.players = [player_dict[name] for name in events[token]]
-            event_players = event_players.union(self.players)
-            self.get_token_summary(token, summaries, event_time)
-        if event_time:
-            reporter.new_report(summaries, event_players, event_time)
-            
-    def get_token_summary(self, token, summaries, event_time):
-        summary_pseuds = ', '.join(
-            [player.pseudonym for player in self.players])
-        if token.type == game_reader.KILLS:
-            summaries.append(self.kill_event(event_time))
-        elif token.type == game_reader.BONUS:
-            summaries.append(self.bonus_event(token.value, summary_pseuds))
-        elif token.type == game_reader.PLAYER_OP:
-            method_name = token.value.lower() + '_str'
-            summary_method = getattr(self, method_name)
-            summaries.append(summary_method(summary_pseuds))
-        
-    def event_str(self, summary_pseuds):
-        return "An event happens involving {}.".format(summary_pseuds)
-
-    def remove_str(self, summary_pseuds):
-        for player in self.players:
-            player.remove_from_game()
-        return "{} removed from the game.".format(summary_pseuds)
-
-    def casual_str(self, summary_pseuds):
-        for player in self.players:
-            player.make_casual()
-        return "{} now playing casually.".format(summary_pseuds)
-
-    def kill_event(self, kill_time):
-        killer = self.players[0]
-        dead_players = self.players[1:]
-        kill_time = get_datetime(self.date, event_time=kill_time)
-        killer.killed(dead_players, kill_time)
-        dead_list = [player.represent(kill_time) for player in dead_players]
-        dead_str = ' and '.join(dead_list)
-        return '{} kills {}.'.format(killer.represent(kill_time), dead_str)
-
-    def bonus_event(self, points, summary_pseuds):
-        for player in self.players:
-            player.bonus(points)
-        return '{} bonus points to {}.'.format(points, summary_pseuds)
-
     
 def get_first_report_id(start_date):
-    date_struct = get_datetime(start_date)
+    date_struct = utils.get_datetime(start_date)
     term = ('l', 'e', 'm')[(date_struct.tm_mon - 1) / 4]
     year = str(date_struct.tm_year)[-2:]
     return ''.join((term, year, '000'))
-
 
 # Set up filenames, run game
 if __name__ == '__main__':

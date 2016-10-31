@@ -1,4 +1,3 @@
-- The date/time stuff really needs to be in a separate utils file. That would make separating out the game-runner stuff for MW and main games a lot easier.
 - Rename stuff to long/short/longgame/shortgame respectively - slightly more descriptive.
 - Once there are separate MW/main game runners, get main file to look at config to run short or long game respectively.
 - Targetting graph. Main game player needs a target list. Look into how to build an acyclic graph out of them.
