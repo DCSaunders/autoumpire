@@ -7,9 +7,10 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 from reporter import Reporter
-from player import MayWeekPlayer
+from player import ShortGamePlayer, LongGamePlayer, PolicePlayer
 from game_runner import GameRunner
 import utils
+from constants import SHORT_GAME, LONG_GAME
 
 # If changing playerlist column headers, be sure to edit these strings.
 class Field(object):
@@ -22,12 +23,18 @@ class Field(object):
     email = 'Email'
 
 # Reads player details from given csv
-def read_player_details(player_file):
+def read_player_details(player_file, game_type):
     player_dict = dict()
     with open(player_file, 'rb') as f:
         reader = csv.DictReader(f)            
         for row in reader:
-            player = MayWeekPlayer(row[Field.name], row[Field.pseud],
+            if game_type == LONG_GAME:
+                player = LongGamePlayer(row[Field.name], row[Field.pseud],
+                            row[Field.college], row[Field.address],
+                            row[Field.water], row[Field.notes], 
+                            row[Field.email])
+            elif game_type == SHORT_GAME:
+                player = ShortGamePlayer(row[Field.name], row[Field.pseud],
                             row[Field.college], row[Field.address],
                             row[Field.water], row[Field.notes], 
                             row[Field.email])
@@ -49,12 +56,13 @@ def get_first_report_id(start_date):
 if __name__ == '__main__':
     cfg = ConfigParser.ConfigParser()
     cfg.read('game_config.cfg')
+    game_type = cfg.get('all', 'game_type')
     news_file = cfg.get('all', 'news_file') 
     game_file = cfg.get('all', 'game_file')
     player_file = cfg.get('all', 'player_file')
     start_date = cfg.get('all', 'start_date')
     report_id = get_first_report_id(start_date)
-    player_dict = read_player_details(player_file)
+    player_dict = read_player_details(player_file, game_type)
     reporter = Reporter(news_file, player_dict, report_id)
     GameRunner(game_file, start_date, player_dict, reporter)
     score(player_dict)

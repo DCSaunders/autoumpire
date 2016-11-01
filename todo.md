@@ -1,4 +1,3 @@
-- Rename stuff to long/short/longgame/shortgame respectively - slightly more descriptive.
 - Once there are separate MW/main game runners, get main file to look at config to run short or long game respectively.
 - Targetting graph. Main game player needs a target list. Look into how to build an acyclic graph out of them.
 - Separate out game-runner and game-reader classes for main game, MW and generic AUs. 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Player classes for MayWeekAutoUmpire project written by Danielle Saunders
+# Player classes for AutoUmpire project written by Danielle Saunders
 from __future__ import division
 
 import collections
@@ -91,9 +91,9 @@ class Player(object):
         self.kills = 0
         self.deaths = 0
         
-class MayWeekPlayer(Player):
+class ShortGamePlayer(Player):
     def __init__(self, name, pseud, college, address, water, notes, email):
-        super(MayWeekPlayer, self).__init__(name, pseud, college, address, water, notes, email)
+        super(ShortGamePlayer, self).__init__(name, pseud, college, address, water, notes, email)
         self.bonus_points = 0
         self.points = 0.0
 
@@ -130,9 +130,9 @@ class MayWeekPlayer(Player):
         self.points = 10 * self.points # NB points scaled BEFORE bonus added! 
         self.points += self.bonus_points
 
-class MainPlayer(Player):
+class LongGamePlayer(Player):
     def __init__(self, name, pseud, college, address, water, notes, email):
-        super(MainPlayer, self).__init__(name, pseud, college, address, water, notes, email)
+        super(LongGamePlayer, self).__init__(name, pseud, college, address, water, notes, email)
         self.targets = []
         self.competence = None
     
@@ -149,7 +149,7 @@ class MainPlayer(Player):
     def calc_points(self):
         return 0
     
-class PolicePlayer(MainPlayer):
+class PolicePlayer(LongGamePlayer):
     def __init__(self, name, pseud, college, address, water, notes, email, police_competence, rank):
         super(PolicePlayer, self).__init__(name, pseud, college, address, water, notes, email)
         self.competence = police_competence
