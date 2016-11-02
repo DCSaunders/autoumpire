@@ -66,7 +66,23 @@ class GameRunner(object):
         dead_str = ' and '.join(dead_list)
         return '{} kills {}.'.format(killer.represent(kill_time), dead_str)
 
+class ShortGameRunner(GameRunner):
+    def __init__(self, game_file, start_date, player_dict, reporter):
+        super(ShortGameRunner, self).__init__(game_file, start_date, player_dict, reporter)
+        
     def bonus_event(self, points, summary_pseuds):
         for player in self.players:
             player.bonus(points)
         return '{} bonus points to {}.'.format(points, summary_pseuds)
+
+
+class LongGameRunner(GameRunner):
+    def __init__(self, game_file, start_date, player_dict, reporter):
+        self.police = {}
+        self.split_police(player_dict)
+        super(LongGameRunner, self).__init__(game_file, start_date, player_dict, reporter)
+
+    def split_police(self, player_dict):
+        for name, player in player_dict.items():
+            print name, type(player)
+  

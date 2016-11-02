@@ -8,7 +8,7 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 from reporter import Reporter
 from player import ShortGamePlayer, LongGamePlayer, PolicePlayer
-from game_runner import GameRunner
+from game_runner import LongGameRunner, ShortGameRunner
 import utils
 from constants import SHORT_GAME, LONG_GAME
 
@@ -21,6 +21,7 @@ class Field(object):
     water = 'Water Status'
     notes = 'Notes'
     email = 'Email'
+    police = 'Police'
 
 # Reads player details from given csv
 def read_player_details(player_file, game_type):
@@ -29,7 +30,13 @@ def read_player_details(player_file, game_type):
         reader = csv.DictReader(f)            
         for row in reader:
             if game_type == LONG_GAME:
-                player = LongGamePlayer(row[Field.name], row[Field.pseud],
+                if row[Field.police]:
+                    player = PolicePlayer(row[Field.name], row[Field.pseud],
+                            row[Field.college], row[Field.address],
+                            row[Field.water], row[Field.notes], 
+                            row[Field.email], 'long', 'default rank')
+                else:
+                    player = LongGamePlayer(row[Field.name], row[Field.pseud],
                             row[Field.college], row[Field.address],
                             row[Field.water], row[Field.notes], 
                             row[Field.email])
@@ -40,6 +47,7 @@ def read_player_details(player_file, game_type):
                             row[Field.email])
             player_dict[player.name] = player
     return player_dict
+ 
 
 # Score the playerlist
 def score(player_dict):
@@ -56,7 +64,7 @@ def get_first_report_id(start_date):
 if __name__ == '__main__':
     cfg = ConfigParser.ConfigParser()
     cfg.read('game_config.cfg')
-    game_type = cfg.get('all', 'game_type')
+    game_type = cfg.get('all', 'game_type').lower()
     news_file = cfg.get('all', 'news_file') 
     game_file = cfg.get('all', 'game_file')
     player_file = cfg.get('all', 'player_file')
@@ -64,7 +72,10 @@ if __name__ == '__main__':
     report_id = get_first_report_id(start_date)
     player_dict = read_player_details(player_file, game_type)
     reporter = Reporter(news_file, player_dict, report_id)
-    GameRunner(game_file, start_date, player_dict, reporter)
+    if game_type == SHORT_GAME:
+        ShortGameRunner(game_file, start_date, player_dict, reporter)
+    else:
+        LongGameRunner(game_file, start_date, player_dict, reporter)
     score(player_dict)
     reporter.output_scores(html=False, key='points', desc=True) 
     reporter.output_scores(html=True, key='points', desc=True)
