@@ -70,6 +70,10 @@ class Player(object):
 
     def remove_from_game(self):
         self.in_game = False
+
+    # Add bonus points
+    def bonus(self, points):
+        self.bonus_points += points
     
     def make_casual(self):
         self.casual = True
@@ -90,17 +94,13 @@ class Player(object):
         self.last_death_time = None
         self.kills = 0
         self.deaths = 0
-        
+        self.bonus_points = 0  
+        self.points = 0.0
+
 class ShortGamePlayer(Player):
     def __init__(self, name, pseud, college, address, water, notes, email):
         super(ShortGamePlayer, self).__init__(name, pseud, college, address, water, notes, email)
-        self.bonus_points = 0
-        self.points = 0.0
-
-    # Add bonus points
-    def bonus(self, points):
-        self.bonus_points += points
-
+        
     def is_alive(self, death_time):
         alive = True
         if self.last_death_time:

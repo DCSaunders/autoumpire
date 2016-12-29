@@ -57,6 +57,11 @@ class GameRunner(object):
             player.make_casual()
         return "{} now playing casually.".format(summary_pseuds)
 
+    def bonus_event(self, points, summary_pseuds):
+        for player in self.players:
+            player.bonus(points)
+        return '{} bonus points to {}.'.format(points, summary_pseuds)
+
     def kill_event(self, kill_time):
         killer = self.players[0]
         dead_players = self.players[1:]
@@ -70,19 +75,16 @@ class ShortGameRunner(GameRunner):
     def __init__(self, game_file, start_date, player_dict, reporter):
         super(ShortGameRunner, self).__init__(game_file, start_date, player_dict, reporter)
         
-    def bonus_event(self, points, summary_pseuds):
-        for player in self.players:
-            player.bonus(points)
-        return '{} bonus points to {}.'.format(points, summary_pseuds)
 
 
 class LongGameRunner(GameRunner):
     def __init__(self, game_file, start_date, player_dict, reporter):
         self.police = {}
-        self.split_police(player_dict)
-        super(LongGameRunner, self).__init__(game_file, start_date, player_dict, reporter)
+        self.get_police(player_dict)
+        super(LongGameRunner, self).__init__(game_file, start_date,
+            player_dict, reporter)
 
-    def split_police(self, player_dict):
+    def get_police(self, player_dict):
         for name, player in player_dict.items():
             print name, type(player)
   
