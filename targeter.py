@@ -33,25 +33,30 @@ class Graph(object):
         for i in range(0, self.node_count):
             self.nodes.append(Node(i))
 
+    def get_next_prime(self):
+        if (self.node_count + 1) % 2 == 0:
+            n = self.node_count + 2
+        else:
+            n = self.node_count + 1
+        while(not self.is_prime(n)):
+            n += 2
+        return n
+
+    def is_prime(self, n):
+        test = 3
+        while test <= np.sqrt(n):
+            if n % test == 0:
+                return False
+            test += 2
+        return True
+
     def construct(self):
-        while True:
-            unfinished = True
-            for index, node in enumerate(self.nodes):
-                remaining = [i for i in range(0, self.node_count)
-                             if i != index
-                             and self.nodes[i] not in node.assassins
-                             and self.nodes[i] not in node.targets
-                             and len(node.targets) < 3
-                             and len(self.nodes[i].assassins) < 3]
-                if remaining:
-                    unfinished = True
-                    c = np.random.choice(remaining)
-                    node.targets.add(self.nodes[c])
-                    self.nodes[c].assassins.add(node)
-                else:
-                    unfinished = False
-            if not unfinished:
-                break
+        for i, node in enumerate(self.nodes):
+            targets = [j % self.node_count
+                       for j in (i + 5, i + 6, i + 8)]
+            for t in targets:
+                node.targets.add(self.nodes[t])
+                self.nodes[t].assassins.add(node)
                              
     def print_graph(self):
         for node in self.nodes:
@@ -59,15 +64,24 @@ class Graph(object):
                 node.name,
                 [n.name for n in node.assassins],
                 [n.name for n in node.targets])
+
+    def dotfile_graph(self):
+        with open('targets.dot', 'w') as f:
+            f.write('digraph targetting {\n')
+            for node in self.nodes:
+                for t in node.targets:
+                    f.write('"{}" -> "{}";\n'.format(node.name, t.name))
+            f.write('}\n')
             
 np.random.seed(1234)
 player_list = []
-player_count = 15
+player_count = 28
 for i in range (0, player_count):
     player_list.append(TestPlayer('player{}'.format(i)))
 targets = Graph(player_count)
 targets.construct()
 targets.print_graph()
+targets.dotfile_graph()
 
 '''
 Need to store targets in an adjacency list like so:
@@ -101,4 +115,5 @@ from the highest seed down, in such a way as to maximise the distance between
 the player being added and all previous players. Obviously, this ceases to be 
 useful once we reach the point where all empty graph locations are adjacent to 
 an existing player. 
+Seeds in e.g. nodes 0, 9, 18, 27...
 '''
