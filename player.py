@@ -41,9 +41,6 @@ class Player(object):
         else:
             output_tuple = (self.name, attempt_time, killer_name)
             print '%s is no longer playing at %s - %s cannot kill them' % output_tuple
-  
-    def is_alive(self, death_time):
-        pass
 
     def time_since_death(self, death_time):
         death_time_seconds = time.mktime(death_time)
@@ -71,10 +68,6 @@ class Player(object):
     def remove_from_game(self):
         self.in_game = False
 
-    # Add bonus points
-    def bonus(self, points):
-        self.bonus_points += points
-    
     def make_casual(self):
         self.casual = True
         
@@ -130,10 +123,19 @@ class ShortGamePlayer(Player):
         self.points = 10 * self.points # NB points scaled BEFORE bonus added! 
         self.points += self.bonus_points
 
+
+    # Add bonus points
+    def bonus(self, points):
+        self.bonus_points += points
+    
+        
 class LongGamePlayer(Player):
-    def __init__(self, name, pseud, college, address, water, notes, email):
+    def __init__(self, name, pseud, college, address, water, notes, email,
+                 seed=0):
         super(LongGamePlayer, self).__init__(name, pseud, college, address, water, notes, email)
-        self.targets = []
+        self.seed = seed
+        self.targets = set()
+        self.assassins = set()
         self.competence = None
     
     def is_alive(self, death_time):

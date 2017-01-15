@@ -22,6 +22,7 @@ class Field(object):
     notes = 'Notes'
     email = 'Email'
     police = 'Police'
+    seed = 'Seed'
 
 # Reads player details from given csv
 def read_player_details(player_file, game_type):
@@ -39,7 +40,7 @@ def read_player_details(player_file, game_type):
                     player = LongGamePlayer(row[Field.name], row[Field.pseud],
                             row[Field.college], row[Field.address],
                             row[Field.water], row[Field.notes], 
-                            row[Field.email])
+                            row[Field.email], row[Field.seed])
             elif game_type == SHORT_GAME:
                 player = ShortGamePlayer(row[Field.name], row[Field.pseud],
                             row[Field.college], row[Field.address],
@@ -47,13 +48,7 @@ def read_player_details(player_file, game_type):
                             row[Field.email])
             player_dict[player.name] = player
     return player_dict
- 
-
-# Score the playerlist
-def score(player_dict):
-    for player in player_dict.values():
-        player.calc_points()
-    
+     
 def get_first_report_id(start_date):
     date_struct = utils.get_datetime(start_date)
     term = ('l', 'e', 'm')[(date_struct.tm_mon - 1) / 4]
@@ -73,10 +68,10 @@ if __name__ == '__main__':
     player_dict = read_player_details(player_file, game_type)
     reporter = Reporter(news_file, player_dict, report_id)
     if game_type == SHORT_GAME:
-        ShortGameRunner(game_file, start_date, player_dict, reporter)
+        runner = ShortGameRunner(game_file, start_date, player_dict)
     else:
-        LongGameRunner(game_file, start_date, player_dict, reporter)
-    score(player_dict)
+        runner = LongGameRunner(game_file, start_date, player_dict)
+    runner.run_game(reporter)
     reporter.output_scores(html=False, key='points', desc=True) 
     reporter.output_scores(html=True, key='points', desc=True)
     reporter.output_scores(html=True, key='college', desc=False)
