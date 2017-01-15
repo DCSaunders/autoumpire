@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 import numpy as np
+from player import PolicePlayer
 
 class TestPlayer(object):
+    # Dummy class for testing
     def __init__(self, name):
         self.name = name
-        self.targets = []
-        self.assassins = []
+        self.targets = set()
+        self.assassins = set()
 
 class Node(object):
     def __init__(self, name=None):
@@ -25,30 +27,12 @@ class Node(object):
                 return False
         return True
             
-
 class Graph(object):
     def __init__(self, node_count):
         self.nodes = []
         self.node_count = node_count
         for i in range(0, self.node_count):
             self.nodes.append(Node(i))
-
-    def get_next_prime(self):
-        if (self.node_count + 1) % 2 == 0:
-            n = self.node_count + 2
-        else:
-            n = self.node_count + 1
-        while(not self.is_prime(n)):
-            n += 2
-        return n
-
-    def is_prime(self, n):
-        test = 3
-        while test <= np.sqrt(n):
-            if n % test == 0:
-                return False
-            test += 2
-        return True
 
     def construct(self):
         for i, node in enumerate(self.nodes):
@@ -72,7 +56,22 @@ class Graph(object):
                 for t in node.targets:
                     f.write('"{}" -> "{}";\n'.format(node.name, t.name))
             f.write('}\n')
-            
+
+    def initialise(self, player_list):
+        self.construct()
+        to_assign = [player for player in player_list
+                     if type(player) is not PolicePlayer]
+        self.seed(to_assign)
+     
+        
+    def seed(self, to_assign):
+        # Seeds in e.g. nodes 0, 9, 18, 27...
+        num_seeds = int(self.node_count / 9) + 1
+        to_seed = [player for player in to_assign if player.seed]
+        
+        to_seed = sorted(to_seed, key=lambda x: x.seed)[:num_seeds]
+        print 'Seeding {}'.format(', '.join([p.name for p in to_seed]))
+        
 np.random.seed(1234)
 player_list = []
 player_count = 28
@@ -84,21 +83,14 @@ targets.print_graph()
 targets.dotfile_graph()
 
 '''
-Need to store targets in an adjacency list like so:
-targets = [v0 v1 v2 v3 v4 v5]
-targets[0] = v0 = [1 2 5] - player 0 has targets 1, 2, 5
-Need to avoid self-cycles, multiple edges (could be sets rather than lists), and 3-cycles (target triangles where each vertex is the target of the other two.) 
+Need to avoid self-cycles, multiple edges (could be sets rather than lists), and 3-cycles (target triangles where each vertex is the target of the other two.) In other words: 
 
 - I cannot target myself.
 - I cannot target my assassin
-- I cannot target my target's target
+- I would like to avoid targetting the assassin/target of my assassin/target
 
-A player must always have three distinct
-targets and three distinct assassins, and a player may not target their own
-assassins (or indeed themselves). In graph theoretic terms this is equivalent
-to saying that the targetting graph must remain `simple'
-
-For initial targetting, a completely random (simple) targetting graph is 
+Previous approach:
+"For initial targetting, a completely random (simple) targetting graph is 
 generated. While this meets the first two goals, it is very badly suited for 
 the third, on occasions blocking after fewer than 10 deaths. The reason for 
 this is the existence of `3-cycles', groups of 3 players, all of whom are 
@@ -114,6 +106,5 @@ sorting where these are equal). They are then placed into the targetting graph
 from the highest seed down, in such a way as to maximise the distance between 
 the player being added and all previous players. Obviously, this ceases to be 
 useful once we reach the point where all empty graph locations are adjacent to 
-an existing player. 
-Seeds in e.g. nodes 0, 9, 18, 27...
+an existing player."
 '''
