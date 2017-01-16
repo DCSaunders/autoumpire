@@ -1,9 +1,9 @@
-- Once there are separate MW/main game runners, get main file to look at config to run short or long game respectively.
-- Targetting graph. Main game player needs a target list. Look into how to build an acyclic graph out of them.
-- Separate out game-runner and game-reader classes for main game, MW and generic AUs. 
+- Targetting graph initialise with players
+- Targetting graph retargetting after a kill. Might need to add manual swapping if necessary.
 - Add competence field and ability to update competence. Should include new colour for representation!
 - Add wanted field and ability to make people wanted. Should include new colour for representation and should override the inco field.
-- Should be able to be a police player from the start (new field in CSV?) or be made police at a given point.
+- Link up mailer to send emails on update *if needed only*
+- Options to make a police player/resurrect a police player with a rank/make a police player corrupt (same syntax as wantedness probably) at any point in game.
 - Generate inco, wanted, police and corrupt/dead corrupt police lists.
 - Could have some kind of alert for potential illicit kills (shouldn't automatically make wanted, could be case of bearing etc.)
 - It might be worth making wantedness a thing in the short game, and just having it keep a bounty list. Would update templates automatically, which might be helpful.
