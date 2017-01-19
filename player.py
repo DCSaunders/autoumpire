@@ -137,6 +137,7 @@ class LongGamePlayer(Player):
         self.targets = set()
         self.assassins = set()
         self.competence = None
+        self.node = None
     
     def is_alive(self, death_time):
         alive = True

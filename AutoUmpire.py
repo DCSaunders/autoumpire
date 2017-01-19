@@ -3,6 +3,7 @@ import codecs
 import ConfigParser
 import csv
 import os.path
+import random
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -57,6 +58,7 @@ def get_first_report_id(start_date):
 
 # Set up filenames, run game
 if __name__ == '__main__':
+    random.seed(1234)
     cfg = ConfigParser.ConfigParser()
     cfg.read('game_config.cfg')
     game_type = cfg.get('all', 'game_type').lower()

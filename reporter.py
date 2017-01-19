@@ -47,8 +47,8 @@ class Reporter(object):
     def plaintext_scores(self, player_list, score_file):
         with codecs.open(score_file, 'w', encoding='utf-8') as f:
             for player in player_list:
-                point_str = ' '.join((player.name, str(player.points), "\n"))
-                print point_str
+                point_str = ' '.join(
+                    (player.name, str(player.points), "\n"))
                 f.write(point_str)
 
 

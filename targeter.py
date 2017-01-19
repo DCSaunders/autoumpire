@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import numpy as np
+import random
 from player import PolicePlayer
 
 class TestPlayer(object):
@@ -33,7 +33,8 @@ class Graph(object):
         self.node_count = node_count
         for i in range(0, self.node_count):
             self.nodes.append(Node(i))
-
+        self.free_nodes = range(node_count)
+            
     def construct(self):
         for i, node in enumerate(self.nodes):
             targets = [j % self.node_count
@@ -49,12 +50,18 @@ class Graph(object):
                 [n.name for n in node.assassins],
                 [n.name for n in node.targets])
 
-    def dotfile_graph(self):
+    def dotfile_graph(self, player_names=False):
         with open('targets.dot', 'w') as f:
             f.write('digraph targetting {\n')
             for node in self.nodes:
                 for t in node.targets:
-                    f.write('"{}" -> "{}";\n'.format(node.name, t.name))
+                    if player_names:
+                        f.write(
+                            '"{}" -> "{}";\n'.format(node.player.name,
+                                                     t.player.name))
+                    else:
+                        f.write(
+                            '"{}" -> "{}";\n'.format(node.name, t.name))
             f.write('}\n')
 
     def initialise(self, player_list):
@@ -62,17 +69,24 @@ class Graph(object):
         to_assign = [player for player in player_list
                      if type(player) is not PolicePlayer]
         self.seed(to_assign)
-     
-        
+        for player in to_assign:
+            node = self.free_nodes.pop()
+            self.nodes[node] = player
+            player.node = self.nodes[node]
+            
     def seed(self, to_assign):
         # Seeds in e.g. nodes 0, 9, 18, 27...
         num_seeds = int(self.node_count / 9) + 1
         to_seed = [player for player in to_assign if player.seed]
-        
         to_seed = sorted(to_seed, key=lambda x: x.seed)[:num_seeds]
         print 'Seeding {}'.format(', '.join([p.name for p in to_seed]))
-        
-np.random.seed(1234)
+        seed_nodes = [9 * idx for idx in range(num_seeds)]
+        for node, player in zip(seed_nodes, to_seed):
+            self.nodes[node].player = player
+            player.node = self.nodes[node]
+            to_assign.remove(player)
+            self.free_nodes.remove(node)
+
 player_list = []
 player_count = 28
 for i in range (0, player_count):
