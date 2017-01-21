@@ -1,4 +1,3 @@
-- Targetting graph initialise with players
 - Targetting graph retargetting after a kill. Might need to add manual swapping if necessary.
 - Add competence field and ability to update competence. Should include new colour for representation!
 - Add wanted field and ability to make people wanted. Should include new colour for representation and should override the inco field.

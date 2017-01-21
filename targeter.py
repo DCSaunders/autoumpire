@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import cPickle
 import random
 from player import PolicePlayer
 
@@ -43,9 +44,16 @@ class Graph(object):
                 node.targets.add(self.nodes[t])
                 self.nodes[t].assassins.add(node)
                              
-    def print_graph(self):
+    def print_graph(self, player_names=False):
         for node in self.nodes:
-            print 'Node {}: assassins: {}, targets: {}'.format(
+            if player_names:
+                print 'Node {}: assassins: {}, targets: {}'.format(
+                node.player.name,
+                [n.player.name for n in node.assassins],
+                [n.player.name for n in node.targets])
+
+            else:
+                print 'Node {}: assassins: {}, targets: {}'.format(
                 node.name,
                 [n.name for n in node.assassins],
                 [n.name for n in node.targets])
@@ -64,15 +72,17 @@ class Graph(object):
                             '"{}" -> "{}";\n'.format(node.name, t.name))
             f.write('}\n')
 
-    def initialise(self, player_list):
+    def initialise(self, player_list, graph_file):
         self.construct()
         to_assign = [player for player in player_list
                      if type(player) is not PolicePlayer]
         self.seed(to_assign)
         for player in to_assign:
             node = self.free_nodes.pop()
-            self.nodes[node] = player
+            self.nodes[node].player = player
             player.node = self.nodes[node]
+        with open(graph_file, 'wb') as f_out:
+            cPickle.dump(self, f_out)
             
     def seed(self, to_assign):
         # Seeds in e.g. nodes 0, 9, 18, 27...
@@ -87,6 +97,8 @@ class Graph(object):
             to_assign.remove(player)
             self.free_nodes.remove(node)
 
+
+'''
 player_list = []
 player_count = 28
 for i in range (0, player_count):
@@ -96,7 +108,7 @@ targets.construct()
 targets.print_graph()
 targets.dotfile_graph()
 
-'''
+
 Need to avoid self-cycles, multiple edges (could be sets rather than lists), and 3-cycles (target triangles where each vertex is the target of the other two.) In other words: 
 
 - I cannot target myself.

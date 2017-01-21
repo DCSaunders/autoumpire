@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import cPickle
 import utils
 import constants
 from game_reader import Lexer, Interpreter
@@ -104,14 +105,26 @@ class ShortGameRunner(GameRunner):
 
 
 class LongGameRunner(GameRunner):
-    def __init__(self, game_file, start_date, player_dict):
+    def __init__(self, game_file, start_date, player_dict, graph_file):
         super(LongGameRunner, self).__init__(game_file, start_date,
             player_dict)
         self.police = {}
         self.get_police()
-        self.targeter = Graph(len(self.player_dict) - len(self.police))
-        self.targeter.initialise(self.player_dict.values())
+        self.targeter = self.load(graph_file)
         
+    def load(self, graph_file):
+        try:
+            with open(graph_file, 'rb') as f_in:
+                print "Loading initial graph from {}".format(graph_file)
+                targeter = cPickle.load(f_in)
+                #targeter.print_graph(player_names=True)
+        except(OSError, IOError):
+            print "Cannot load from {} - initialising new graph".format(
+                graph_file)
+            targeter = Graph(len(self.player_dict) - len(self.police))
+            targeter.initialise(self.player_dict.values(), graph_file)
+        return targeter
+            
     def get_police(self):
         for name, player in self.player_dict.items():
             if type(player) == PolicePlayer:

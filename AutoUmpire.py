@@ -72,7 +72,7 @@ if __name__ == '__main__':
     if game_type == SHORT_GAME:
         runner = ShortGameRunner(game_file, start_date, player_dict)
     else:
-        runner = LongGameRunner(game_file, start_date, player_dict)
+        runner = LongGameRunner(game_file, start_date, player_dict, cfg.get('long', 'graph_file'))
     runner.run_game(reporter)
     reporter.output_scores(html=False, key='points', desc=True) 
     reporter.output_scores(html=True, key='points', desc=True)
