@@ -117,6 +117,7 @@ class LongGameRunner(GameRunner):
             with open(graph_file, 'rb') as f_in:
                 print "Loading initial graph from {}".format(graph_file)
                 targeter = cPickle.load(f_in)
+                self.assign_initial_nodes(targeter)
                 #targeter.print_graph(player_names=True)
         except(OSError, IOError):
             print "Cannot load from {} - initialising new graph".format(
@@ -124,6 +125,10 @@ class LongGameRunner(GameRunner):
             targeter = Graph(len(self.player_dict) - len(self.police))
             targeter.initialise(self.player_dict.values(), graph_file)
         return targeter
+
+    def assign_initial_nodes(self, targeter):
+        for node in targeter.nodes:
+            self.player_dict[node.player.name].node = node
             
     def get_police(self):
         for name, player in self.player_dict.items():
@@ -131,6 +136,8 @@ class LongGameRunner(GameRunner):
                 self.police[name] = player
 
     def run_game(self, reporter):
+        self.targeter.print_graph(player_names=True)
         with open(self.game_file, 'r') as f:
             for line in f:
                 self.run_event(line, reporter)
+        self.targeter.print_graph(player_names=True)

@@ -99,6 +99,8 @@ class ShortGamePlayer(Player):
         if self.last_death_time:
             alive = self.time_since_death(death_time) >= RESURRECT_TIME
         return alive
+
+    
         
     # Calculate total points. Equations provided have been used since MW14 game.
     # NB: The main ideas of the scoring system are to:
@@ -134,8 +136,6 @@ class LongGamePlayer(Player):
                  seed=0):
         super(LongGamePlayer, self).__init__(name, pseud, college, address, water, notes, email)
         self.seed = seed
-        self.targets = set()
-        self.assassins = set()
         self.competence = None
         self.node = None
     
@@ -147,7 +147,19 @@ class LongGamePlayer(Player):
             self.last_death_time = death_time
         return alive
 
-
+    def died(self, killer, time):
+        super(LongGamePlayer, self).died(killer, time)
+        self.adjust_targets()
+        
+    def adjust_targets(self):
+        if type(self) != PolicePlayer:
+            for assassin, target in zip(self.node.assassins,
+                                        self.node.targets):
+                assassin.targets.remove(self.node)
+                assassin.targets.add(target)
+                target.assassins.remove(self.node)
+                target.assassins.add(assassin)
+    
     # Calculate conkers scores recursively, starting from last player standing - TODO
     def calc_points(self):
         return 0

@@ -1,4 +1,4 @@
-- Targetting graph retargetting after a kill. Might need to add manual swapping if necessary.
+- Thorough retargetting testing.
 - Add competence field and ability to update competence. Should include new colour for representation!
 - Add wanted field and ability to make people wanted. Should include new colour for representation and should override the inco field.
 - Link up mailer to send emails on update *if needed only*
