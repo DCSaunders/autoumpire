@@ -1,6 +1,8 @@
 - Thorough retargetting testing.
 - Add competence field and ability to update competence. Should include new colour for representation!
-- Add wanted field and ability to make people wanted. Should include new colour for representation and should override the inco field.
+- Need command to set wantedness redemption condition
+- Should have final command in game be current date/time, which determines current competence/wantedness state
+- Need to make list of commands so far.
 - Link up mailer to send emails on update *if needed only*
 - Options to make a police player/resurrect a police player with a rank/make a police player corrupt (same syntax as wantedness probably) at any point in game.
 - Generate inco, wanted, police and corrupt/dead corrupt police lists.

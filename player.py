@@ -4,7 +4,7 @@ from __future__ import division
 
 import collections
 import time
-
+TIME_PRINT = '%d.%m.%y %H:%M'   
 RESURRECT_TIME = 4 * 3600
 DEAD_COLOUR = '<span class="colourdead1">'
 LIVE_COLOUR = '<span class="colourliveplayer6">'
@@ -32,10 +32,9 @@ class Player(object):
         return represent
     
     def invalid_death(self, killer_name, attempt_time):
-        new_format = '%d.%m.%y %H:%M'
-        attempt_time = time.strftime(new_format, attempt_time)    
+        attempt_time = time.strftime(TIME_PRINT, attempt_time)    
         if self.in_game:
-            last_death = time.strftime(new_format, self.last_death_time)
+            last_death = time.strftime(TIME_PRINT, self.last_death_time)
             output_tuple = (killer_name, self.name, attempt_time, last_death)
             print '%s cannot kill %s at %s: previous death at %s' % output_tuple
         else:
@@ -56,14 +55,20 @@ class Player(object):
         return ratio
     
     # Sets that killed another player, sets a report
-    def killed(self, other_players, time):
-        for other_player in other_players:
-            if other_player.is_alive(time) and other_player.in_game:
-                self.killed_list[other_player] += 1
-                self.kills += 1
-                other_player.died(self, time)
-            else:
-                other_player.invalid_death(self.name, time)
+    def killed(self, other_players, attempt_time):
+        if self.is_alive(attempt_time):
+            for other_player in other_players:
+                if (other_player.is_alive(attempt_time)
+                    and other_player.in_game):
+                    self.killed_list[other_player] += 1
+                    self.kills += 1
+                    other_player.died(self, attempt_time)
+                else:
+                    other_player.invalid_death(self.name, attempt_time)
+        else:
+            print "{} is dead at {} so cannot kill {}".format(
+                self.name, time.strftime(TIME_PRINT, attempt_time),
+                [p.name for p in other_players])
 
     def remove_from_game(self):
         self.in_game = False
@@ -132,12 +137,13 @@ class ShortGamePlayer(Player):
     
         
 class LongGamePlayer(Player):
-    def __init__(self, name, pseud, college, address, water, notes, email,
-                 seed=0):
+    def __init__(self, name, pseud, college, address, water, notes, email, seed=0):
         super(LongGamePlayer, self).__init__(name, pseud, college, address, water, notes, email)
         self.seed = seed
-        self.competence = None
+        self.competence_deadline = None
         self.node = None
+        self.wanted = False
+        self.inco = False
     
     def is_alive(self, death_time):
         alive = True
@@ -149,6 +155,9 @@ class LongGamePlayer(Player):
 
     def died(self, killer, time):
         super(LongGamePlayer, self).died(killer, time)
+        if not (self in killer.node.targets
+                or self.wanted or self.inco):
+            killer.set_wanted(self)
         self.adjust_targets()
         
     def adjust_targets(self):
@@ -159,7 +168,13 @@ class LongGamePlayer(Player):
                 assassin.targets.add(target)
                 target.assassins.remove(self.node)
                 target.assassins.add(assassin)
-    
+
+    def set_wanted(self, illicit_kill=None):
+        if illicit_kill:
+            print "{} is wanted for killing {}".format(
+            self.name, illicit_kill.name)
+        self.wanted = True
+        
     # Calculate conkers scores recursively, starting from last player standing - TODO
     def calc_points(self):
         return 0
@@ -170,7 +185,6 @@ class PolicePlayer(LongGamePlayer):
         self.competence = police_competence
         self.rank = rank
         self.alive = True
-        self.corrupt = False
 
     def is_alive(self, death_time):
         return self.alive

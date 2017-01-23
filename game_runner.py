@@ -136,8 +136,8 @@ class LongGameRunner(GameRunner):
                 self.police[name] = player
 
     def run_game(self, reporter):
-        self.targeter.print_graph(player_names=True)
+        #self.targeter.print_graph(player_names=True)
         with open(self.game_file, 'r') as f:
             for line in f:
                 self.run_event(line, reporter)
-        self.targeter.print_graph(player_names=True)
+        #self.targeter.print_graph(player_names=True)
