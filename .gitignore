@@ -2,3 +2,5 @@
 *.pyc
 scores*
 news.txt
+*.dot
+*.png
