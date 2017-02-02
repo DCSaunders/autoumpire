@@ -73,6 +73,14 @@ class Player(object):
     def remove_from_game(self):
         self.in_game = False
 
+    def accomplice(self, accomplice_time=None):
+        # Only has an effect for main game players
+        pass
+
+    def attempt(self, attempt_time=None):
+        # Only has an effect for main game players
+        pass
+        
     def make_casual(self):
         self.casual = True
         
@@ -155,9 +163,6 @@ class LongGamePlayer(Player):
 
     def died(self, killer, time):
         super(LongGamePlayer, self).died(killer, time)
-        if not (self in killer.node.targets
-                or self.wanted or self.inco):
-            killer.set_wanted(self)
         self.adjust_targets()
         
     def adjust_targets(self):
@@ -169,11 +174,23 @@ class LongGamePlayer(Player):
                 target.assassins.remove(self.node)
                 target.assassins.add(assassin)
 
-    def set_wanted(self, illicit_kill=None):
-        if illicit_kill:
-            print "{} is wanted for killing {}".format(
-            self.name, illicit_kill.name)
+    def set_wanted(self):
         self.wanted = True
+
+    def set_redeemed(self):
+        self.wanted = False
+        
+    def accomplice(self, accomplice_time=None, competence=0):
+        # TODO: adjust competence based on config
+        pass
+
+    def attempt(self, attempt_time=None, competence=0):
+        # TODO: adjust competence based on config
+        pass
+
+    def adjust_competence(self, adjustment):
+        # TODO: adjust competence deadline based off (most recent?) config option. There should be a config date beyond which competence does not increase, probably along the lines of "X days after most recent competence-increasing activity". As a command, adjustments/attempts/accomplicing should maybe work like a bonus command? I should really learn how to use decorators.
+        pass
         
     # Calculate conkers scores recursively, starting from last player standing - TODO
     def calc_points(self):
