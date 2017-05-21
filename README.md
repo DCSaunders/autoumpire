@@ -32,12 +32,14 @@ There are no assassins in Cambridge.
 ## Commands usable in the Autoumpire
 
 Commands are executed in order from top of file to bottom, one line at a time.
+
 **An event template will only be created for a line with a `TIME` specified. All events listed on a given line with a `TIME` will appear in the same template.**  
-A new line starts after a linebreak, not after line wrapping.  
+
+A new line starts after a linebreak.  
 Multiple commands may be chained on a given line using `ALSO`.  
 Any text following a `#` marker is a comment.  
 All commands on a given line take place simultaneously (allowing e.g. double kills.)  
-In each example, PlayerX indicates the player's full (signup) name.  
+In each example, PlayerX indicates the player's full (signup) name, **not pseudonym**. The quotation marks are necessary. 
 
 **MAIN AND MW GAME**
 
@@ -70,7 +72,7 @@ REMOVE "Player1"
 
 **Other player activities**  
 `ATTEMPT` and `ACCOMP` may add competence in the main game, depending on the configuration. Even if not, they may be used to maintain a clearer record of the game.  
-`EVENT` can be used to generate a templatefor a generic event in which no attempt or accomplicing occurs, such as a random player report. It will never add competence.
+`EVENT` can be used to generate a template for a generic event in which no attempt or accomplicing occurs, such as a random player report. It will never add competence.
 ```
 ATTEMPT "Player1"
 ACCOMP "Player1"
