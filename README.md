@@ -50,9 +50,12 @@ TIME=15:05
 ```
 
 **Kills**
+
 Kills must be associated with a time.  
-Double kills may be specified as in the first example below.  
-One player may kill multiple players as in the second example below. Multiple players may not kill one player.
+Double kills may be specified as in the first example.  
+One player may kill multiple players as in the second example. 
+Multiple separate kills may take place at the same time as in the third example.
+Multiple players may not kill one player.
 
 ```
 "Player4" KILLS "Player2" ALSO "Player2" KILLS "Player4" TIME=15:05
@@ -67,7 +70,7 @@ REMOVE "Player1"
 
 **Other player activities**  
 `ATTEMPT` and `ACCOMP` may add competence in the main game, depending on the configuration. Even if not, they may be used to maintain a clearer record of the game.  
-`EVENT` can be used for a generic event in which no attempt or accomplicing occurs, such as a random player report. It will never add competence.
+`EVENT` can be used to generate a templatefor a generic event in which no attempt or accomplicing occurs, such as a random player report. It will never add competence.
 ```
 ATTEMPT "Player1"
 ACCOMP "Player1"
@@ -91,10 +94,19 @@ REDEEMED "Player1"
 
 **MW ONLY**
 
-**Bonus points**  
-"Player1" BONUS=4
+**Bonus points** 
 
+Give a player an int, float, positive or negative number of bonus points. 
+Will not generate a report template unless associated with a time.
+```
+"Player1" BONUS=4.3
+"Player2" BONUS=-1
+```
 **Mark a player as casual**
+
+A player becomes a casual player for the purposes of listing scores.
+Will not generate a report template.
+Should be given its own line in the game-file, if only for clarity.
 ```
 CASUAL "Player1"
 ```
