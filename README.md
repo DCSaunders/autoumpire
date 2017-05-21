@@ -29,7 +29,7 @@ There are no assassins in Cambridge.
 
 
 
-##ommands usable in the Autoumpire
+## Commands usable in the Autoumpire
 
 Commands are executed in order from top of file to bottom, one line at a time.
 **An event template will only be created for a line with a `TIME` specified. All events listed on a given line with a `TIME` will appear in the same template.**  
