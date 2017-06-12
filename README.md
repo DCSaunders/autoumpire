@@ -1,5 +1,5 @@
 # autoumpire
-Tool to help with umpiring an Assassins game. The current input involves a CSV file containing relevant player details (should be collected on signup) and writing a game file, which contains a near-natural-language description of events. Sample inputs are provided in this repo.
+Tool to help with umpiring an Assassins game. The current input involves a CSV file containing relevant player details (should be collected on signup) and writing a game file, which contains a domain-specific-language description of events. Sample inputs are provided in this repo.
 
 Running AutoUmpire.py with the gamefile and the player CSV in the same directory runs every event in the gamefile from start to finish.
 
