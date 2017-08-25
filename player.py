@@ -22,7 +22,7 @@ class Player(object):
     def represent(self, death_time):
         if not self.in_game:
             represent = '%s, who is no longer playing' % self.name
-        elif not self.last_death_time or self.is_alive(death_time):
+        elif self.is_alive(death_time):
             represent = ''.join((LIVE_COLOUR, self.pseudonym, END_SPAN))
         else:
             represent = '%s (%s)' % (self.pseudonym, self.name)
@@ -31,6 +31,15 @@ class Player(object):
                 represent = ' '.join(['the corpse of', represent])
         return represent
     
+    
+    def just_died(self, death_time):
+        if self.last_death_time:
+            dead_time = self.time_since_death(death_time)
+            if dead_time == 0.0:
+                return True
+        return False
+
+
     def invalid_death(self, killer_name, attempt_time):
         attempt_time = time.strftime(TIME_PRINT, attempt_time)    
         if self.in_game:
@@ -49,16 +58,16 @@ class Player(object):
     # A rough approximation to kill-death-ratio for score ordering
     def kill_death_ratio(self):
         if self.deaths == 0:
-            ratio = self.kills
+            ratio = self.kills # always best :D
         else:
             ratio = self.kills / self.deaths
         return ratio
     
     # Sets that killed another player, sets a report
     def killed(self, other_players, attempt_time):
-        if self.is_alive(attempt_time):
+        if self.is_alive(attempt_time) or self.just_died(attempt_time):
             for other_player in other_players:
-                if (other_player.is_alive(attempt_time)
+                if ((other_player.is_alive(attempt_time) or other_player.just_died(attempt_time)) 
                     and other_player.in_game):
                     self.killed_list[other_player] += 1
                     self.kills += 1
@@ -108,12 +117,10 @@ class ShortGamePlayer(Player):
         super(ShortGamePlayer, self).__init__(name, pseud, college, address, water, notes, email)
         
     def is_alive(self, death_time):
-        alive = True
         if self.last_death_time:
-            alive = self.time_since_death(death_time) >= RESURRECT_TIME
-        return alive
+            return self.time_since_death(death_time) >= RESURRECT_TIME
+        return True
 
-    
         
     # Calculate total points. Equations provided have been used since MW14 game.
     # NB: The main ideas of the scoring system are to:
@@ -152,14 +159,11 @@ class LongGamePlayer(Player):
         self.node = None
         self.wanted = False
         self.inco = False
-    
+
     def is_alive(self, death_time):
-        alive = True
         if self.last_death_time:
-            alive = False
-        else:
-            self.last_death_time = death_time
-        return alive
+            return False
+        return True
 
     def died(self, killer, time):
         super(LongGamePlayer, self).died(killer, time)
