@@ -81,18 +81,26 @@ class Reporter(object):
             f.write(table_end)
 
 
+    def get_current_players_and_casuals(self):
+        casual_players = []
+        players = self.player_dict.values()
+        to_remove = []
+        for index, player in enumerate(players):
+            if not player.in_game:
+                to_remove.append(index)
+            elif player.casual:
+                to_remove.append(index)
+                casual_players.append(player)
+        for index in to_remove:
+            players.pop(index)
+        return players, casual_players
+
     # Output scores in HTML table or plaintext
     # html: false if plaintext output, true if html table
     # k: key to sort on.
     # desc: false if ascending, true if descending.
     def output_scores(self, html, key, desc):
-        casual_players = []
-        players = self.player_dict.values()
-        for index, player in enumerate(players):
-            if not player.in_game:
-                players.pop(index)
-            elif player.casual:
-                casual_players.append(players.pop(index))
+        players, casual_players = self.get_current_players_and_casuals()
         players = sorted(players,
                          key=lambda x: x.kill_death_ratio(),
                          reverse = True)
