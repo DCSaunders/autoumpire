@@ -80,4 +80,4 @@ if __name__ == '__main__':
     reporter.output_scores(html=True, key='college', desc=False)
     reporter.output_scores(html=True, key='name', desc=False)
     reporter.output_scores(html=True, key='kills', desc=True)
-
+    reporter.finish_news()

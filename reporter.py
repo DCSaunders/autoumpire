@@ -14,7 +14,8 @@ class Reporter(object):
         self.le = '\n'
         if using_windows:
             self.le = '\r\n'
-        open(self.news_file, 'w').close()
+        with open(self.news_file, 'w') as f:
+            f.write(constants.NEWS_PREAMBLE)
 
 
     # Build HTML string for report template
@@ -122,4 +123,8 @@ class Reporter(object):
             self.html_scores(all_players, file_name)
         else:
             self.plaintext_scores(all_players, file_name)
+
+    def finish_news(self):
+        with open(self.news_file, 'a') as f:
+            f.write(constants.NEWS_POSTAMBLE)
 
