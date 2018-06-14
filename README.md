@@ -23,7 +23,7 @@ start_date = 01.06.16
 ```
 The output includes a news text file and score files. The news text file contains individual HTML report templates for every individual event in the game file. An event is everything that happens on a line of the gamefile which includes a time. Example scorefile creation is at the bottom of AutoUmpire.py. Scorefiles can be created to contain plaintext scores or HTML tables, ordered by any player attribute.
 
-Evolving variants of this tool have been used in games MW14, MW15, MW16.
+Evolving variants of this tool have been used in games MW14, MW15, MW16, MW17, MW18.
 
 There are no assassins in Cambridge.
 

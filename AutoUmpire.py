@@ -66,9 +66,10 @@ if __name__ == '__main__':
     game_file = cfg.get('all', 'game_file')
     player_file = cfg.get('all', 'player_file')
     start_date = cfg.get('all', 'start_date')
+    using_windows = cfg.getboolean('all', 'using_windows')
     report_id = get_first_report_id(start_date)
     player_dict = read_player_details(player_file, game_type)
-    reporter = Reporter(news_file, player_dict, report_id)
+    reporter = Reporter(news_file, player_dict, report_id, using_windows)
     if game_type == SHORT_GAME:
         runner = ShortGameRunner(game_file, start_date, player_dict)
     else:
