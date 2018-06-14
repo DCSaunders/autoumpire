@@ -93,17 +93,15 @@ class Reporter(object):
 
     def get_current_players_and_casuals(self):
         casual_players = []
-        players = self.player_dict.values()
-        to_remove = []
-        for index, player in enumerate(players):
-            if not player.in_game:
-                to_remove.append(index)
-            elif player.casual:
-                to_remove.append(index)
-                casual_players.append(player)
-        for index in to_remove:
-            players.pop(index)
-        return players, casual_players
+        srs_players = []
+        all_players = self.player_dict.values()
+        for player in all_players:
+            if player.in_game:
+                if player.casual:
+                    casual_players.append(player)
+                else:
+                    srs_players.append(player)
+        return srs_players, casual_players
 
     # Output scores in HTML table or plaintext
     # html: false if plaintext output, true if html table

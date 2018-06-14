@@ -56,11 +56,15 @@ class Player(object):
         return death_time_seconds - last_death_time_seconds
 
     # A rough approximation to kill-death-ratio for score ordering
+    # kills with no deaths is better than kills with deaths
+    # deaths with no kills are ranked in reverse order of deaths
     def kill_death_ratio(self):
         if self.deaths == 0:
-            ratio = self.kills # always best :D
-        else:
+            ratio = float(self.kills) # always best :D
+        elif self.kills > 0:
             ratio = self.kills / self.deaths
+        else:
+            ratio = -float(self.deaths)
         return ratio
     
     # Sets that killed another player, sets a report
