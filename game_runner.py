@@ -25,25 +25,34 @@ class GameRunner(object):
         interpreter.event()
         events = interpreter.event_dict
         event_time = events.pop(constants.TIME, None)
+        time_value = utils.get_datetime(self.date, event_time=event_time)
         if constants.DATE in events:
             self.date = events.pop(constants.DATE, None)
             formatted_date = utils.get_report_date(self.date)
             reporter.new_date(formatted_date)
-        summaries, event_players = [], set()
+        summaries, players_in_template = [], set()
+        for token in events:
+            if token.type == constants.KILLS:
+                # has to be done before reporting to ensure correct colorisation
+                self.event_players = [self.player_dict[name]
+                                      for name in events[token]]
+                self.update_kill(time_value)
         for token in events:
             self.event_players = [self.player_dict[name]
                                   for name in events[token]]
-            event_players = event_players.union(self.event_players)
-            self.get_token_summary(token, summaries, event_time)
+            players_in_template = players_in_template.union(self.event_players)
+            self.get_token_summary(token, summaries, time_value)
         if event_time:
-            reporter.new_report(summaries, event_players, event_time)
+            reporter.new_report(summaries, players_in_template, event_time)
             
+    def get_summary_pseuds(self, players, time):
+        return ' and '.join([player.represent(time) for player in players])
+
     def get_token_summary(self, token, summaries, event_time):
-        summary_pseuds = ', '.join(
-            [player.pseudonym for player in self.event_players])
         if token.type == constants.KILLS:
             summaries.append(self.kill_event(event_time))
         elif token.type == constants.PLAYER_OP:
+            summary_pseuds = self.get_summary_pseuds(self.event_players, event_time)
             method_name = token.value.lower() + '_str'
             summary_method = getattr(self, method_name)
             summaries.append(summary_method(summary_pseuds))
@@ -61,16 +70,16 @@ class GameRunner(object):
             player.make_casual()
         return "{} now playing casually.".format(summary_pseuds)
 
-    def kill_event(self, kill_time):
+    def update_kill(self, event_time):
         killer = self.event_players[0]
         dead_players = self.event_players[1:]
-        kill_time = utils.get_datetime(self.date, event_time=kill_time)
-        killer.killed(dead_players, kill_time)
-        dead_list = [player.represent(kill_time)
-                     for player in dead_players]
-        dead_str = ' and '.join(dead_list)
-        return '{} kills {}.'.format(killer.represent(kill_time),
-                                     dead_str)
+        killer.killed(dead_players, event_time)
+
+
+    def kill_event(self, event_time):
+        killer = self.event_players[0]
+        dead_str = self.get_summary_pseuds(self.event_players[1:], event_time)
+        return '{} kills {}.'.format(killer.represent(event_time), dead_str)
 
 class ShortGameRunner(GameRunner):
     def __init__(self, game_file, start_date, player_dict):
@@ -84,10 +93,8 @@ class ShortGameRunner(GameRunner):
 
     def get_token_summary(self, token, summaries, event_time):
         if token.type == constants.BONUS:
-            summary_pseuds = ', '.join(
-                [player.pseudonym for player in self.event_players])
-            summaries.append(
-                self.bonus_event(token.value, summary_pseuds))
+            summary_pseuds = self.get_summary_pseuds(self.event_players, event_time)
+            summaries.append(self.bonus_event(token.value, summary_pseuds))
         else:
             super(ShortGameRunner, self).get_token_summary(
                 token, summaries, event_time)
