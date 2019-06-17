@@ -43,7 +43,7 @@ class GameRunner(object):
             players_in_template = players_in_template.union(self.event_players)
             self.get_token_summary(token, summaries, time_value)
         if event_time:
-            reporter.new_report(summaries, players_in_template, event_time)
+            reporter.new_report(summaries, players_in_template, event_time, time_value)
             
     def get_summary_pseuds(self, players, time):
         return ' and '.join([player.represent(time) for player in players])

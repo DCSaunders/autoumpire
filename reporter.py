@@ -3,7 +3,7 @@
 import codecs
 import operator
 import constants
-
+import time
 class Reporter(object):
 
     def __init__(self, news_file, player_dict, report_id, using_windows):
@@ -14,31 +14,33 @@ class Reporter(object):
         self.le = '\n'
         if using_windows:
             self.le = '\r\n'
+        self.double_le = "{}{}".format(self.le, self.le)
         with open(self.news_file, 'w') as f:
             f.write(constants.NEWS_PREAMBLE)
 
 
     # Build HTML string for report template
-    def report_string(self, players, event_str, event_time):
-        event_div = "{}{}<div xmlns="" class=\"event\"><hr/>{}</div>"
-        id_str = "<span id={}>[{}] {} </span>"
+    def report_string(self, players, event_str, event_time, time_value):
+        event_div = "{}<div xmlns="" class=\"event\"><hr/>{}</div> <hr/>{}"
+        id_str = "<span id={}>[{}] {}</span>"
         headline = "<span class=\"headline\">{}</span>"
         indent = "<div class=\"indent\">{}</div>"
-        report = "<div class=\"report\">{}</div>".format(indent)
-        report_para = "<p>{} reports:{}</p>"   
-        report_list =  [report.format(report_para.format(player.pseudonym, self.le))
+        report = "{}<div class=\"report\">{}</div>{}".format(self.le, indent, self.double_le)
+        report_para = "{}<p>{} reports: {}</p>"   
+        report_list =  [report.format(report_para.format(
+            self.le, player.represent(time_value), self.le))
                         for player in players]
         event = event_div.format(
             self.le,
-            self.le,
-            id_str.format(self.report_id, event_time, headline.format(event_str)))
+            id_str.format(self.report_id, event_time, headline.format(event_str)),
+            self.double_le)
         return event + ''.join(report_list)
 
     # Create a template for a new report.
-    def new_report(self, event_strings, players, event_time):
+    def new_report(self, event_strings, players, event_time, time_value):
         event_str = ' '.join(event_strings)
         pad_len = len(self.report_id) - 1
-        report = self.report_string(players, event_str, event_time)
+        report = self.report_string(players, event_str, event_time, time_value)
         report_num = int(self.report_id[1:]) + 1
         report_numstr = str(report_num).zfill(pad_len)
         self.report_id = self.report_id[0] + report_numstr
